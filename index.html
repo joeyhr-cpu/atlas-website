@@ -7,69 +7,43 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root {
-    --navy: #0b1f3a;
-    --navy-2: #16345f;
-    --gold: #c9a227;
-    --bg: #f4f7fc;
-    --card: #ffffff;
-    --border: #e3e7ee;
-    --text: #1a2439;
-    --text-muted: #6b7690;
-    --green: #147a4c;
-    --red: #a02828;
+    --navy: #0b1f3a; --navy-2: #16345f; --gold: #c9a227;
+    --bg: #f4f7fc; --card: #ffffff; --border: #e3e7ee;
+    --text: #1a2439; --text-muted: #6b7690; --green: #147a4c; --red: #a02828;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
-    background: var(--bg); color: var(--text);
-  }
-  #login-screen {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(160deg, #0b1f3a 0%, #16345f 100%);
-  }
-  .login-box {
-    background: #fff; border-radius: 14px; padding: 40px 36px; width: 340px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-  }
+  body { margin: 0; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); }
+  #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #0b1f3a 0%, #16345f 100%); }
+  .login-box { background: #fff; border-radius: 14px; padding: 40px 36px; width: 340px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
   .login-box h1 { color: var(--navy); font-size: 26px; margin: 0 0 4px 0; letter-spacing: -0.5px; }
   .login-box p.tag { color: var(--gold); font-weight: 700; font-size: 11px; letter-spacing: 2px; margin: 0 0 20px 0; }
-  input {
-    width: 100%; padding: 11px 12px; margin-bottom: 12px; border: 1.5px solid var(--border);
-    border-radius: 7px; font-size: 14px;
-  }
-  input:focus { outline: none; border-color: var(--navy-2); }
-  button {
-    cursor: pointer; border: none; border-radius: 7px; font-weight: 700; font-size: 13.5px;
-  }
+  input, textarea { width: 100%; padding: 11px 12px; margin-bottom: 12px; border: 1.5px solid var(--border); border-radius: 7px; font-size: 14px; font-family: inherit; }
+  input:focus, textarea:focus { outline: none; border-color: var(--navy-2); }
+  button { cursor: pointer; border: none; border-radius: 7px; font-weight: 700; font-size: 13.5px; }
   .btn-primary { background: var(--navy); color: #fff; padding: 11px 16px; width: 100%; }
   .btn-primary:hover { background: var(--navy-2); }
   .btn-gold { background: var(--gold); color: #1a2439; padding: 9px 14px; }
   .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); padding: 8px 12px; }
   #login-error { color: var(--red); font-size: 12.5px; margin-top: 4px; min-height: 16px; }
   #app-shell { display: none; min-height: 100vh; }
-  .sidebar {
-    width: 220px; background: var(--navy); color: #fff; min-height: 100vh;
-    padding: 24px 0; flex-shrink: 0;
-  }
+  .sidebar { width: 220px; background: var(--navy); color: #fff; min-height: 100vh; padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column; }
   .sidebar .brand { padding: 0 22px 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 14px; }
   .sidebar .brand h2 { margin: 0; font-size: 20px; letter-spacing: 1px; }
   .sidebar .brand span { color: var(--gold); font-size: 10px; letter-spacing: 2px; }
-  .nav-item {
-    padding: 11px 22px; cursor: pointer; font-size: 13.5px; color: #c3cee3; font-weight: 600;
-    border-left: 3px solid transparent;
-  }
+  .nav-item { padding: 11px 22px; cursor: pointer; font-size: 13.5px; color: #c3cee3; font-weight: 600; border-left: 3px solid transparent; }
   .nav-item:hover { background: rgba(255,255,255,0.06); }
   .nav-item.active { color: #fff; border-left-color: var(--gold); background: rgba(255,255,255,0.06); }
-  .main { flex: 1; padding: 30px 40px; max-width: 1100px; }
+  .sidebar-footer { margin-top: auto; padding: 16px 22px; font-size: 10.5px; color: #7d8bab; border-top: 1px solid rgba(255,255,255,0.1); }
+  .main { flex: 1; padding: 30px 40px; max-width: 1200px; }
   #main-flex { display: flex; }
   .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; }
   .topbar h1 { margin: 0; font-size: 22px; }
   .pill { font-size: 11px; background:#eef2f9; color:var(--navy-2); padding:4px 10px; border-radius:12px; font-weight:700; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
   .grid { display: flex; gap: 16px; flex-wrap: wrap; }
-  .grid > .card { flex: 1; min-width: 220px; }
-  .stat-num { font-size: 26px; font-weight: 800; color: var(--navy); }
-  .stat-label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .grid > .card { flex: 1; min-width: 180px; }
+  .stat-num { font-size: 24px; font-weight: 800; color: var(--navy); }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; background: var(--navy); color: #fff; padding: 8px 10px; font-size: 11px; }
   td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
@@ -96,6 +70,19 @@
   .form-row label { font-size:12.5px; font-weight:600; color:var(--text-muted); min-width:110px; }
   .form-row input, .form-row select { flex: 1; min-width: 140px; margin-bottom:0; }
   #tv-chart-container { height: 500px; border-radius: 10px; overflow: hidden; }
+  .agent-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .agent-tile { background:#f7f9fc; border:1px solid var(--border); border-radius:8px; padding:14px 10px; text-align:center; }
+  .agent-tile .dot { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; margin-bottom:6px; }
+  .agent-tile div.name { font-size:12px; font-weight:700; }
+  .activity-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
+  .activity-item:last-child { border-bottom: none; }
+  #equity-canvas { width:100%; height:180px; }
+  .progress-bar-bg { background:#eef2f9; border-radius: 10px; height: 10px; overflow:hidden; margin: 8px 0; }
+  .progress-bar-fill { background: linear-gradient(90deg, var(--navy-2), var(--gold)); height: 100%; }
+  #chat-log { max-height: 380px; overflow-y: auto; margin-bottom: 12px; }
+  .chat-msg { padding:10px 14px; border-radius:10px; margin-bottom:8px; font-size:13.5px; max-width: 80%; }
+  .chat-msg.user { background: var(--navy); color:#fff; margin-left:auto; }
+  .chat-msg.atlas { background:#f0f2f8; color:var(--text); }
 </style>
 </head>
 <body>
@@ -114,23 +101,49 @@
   <div id="main-flex">
     <div class="sidebar">
       <div class="brand"><h2>ATLAS</h2><span>TRADING INTELLIGENCE</span></div>
-      <div class="nav-item active" data-tab="signals" onclick="switchTab('signals')">Signals</div>
+      <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</div>
+      <div class="nav-item" data-tab="signals" onclick="switchTab('signals')">Signals</div>
       <div class="nav-item" data-tab="simulation" onclick="switchTab('simulation')">My Simulation</div>
       <div class="nav-item" data-tab="journal" onclick="switchTab('journal')">Journal</div>
+      <div class="nav-item" data-tab="coach" onclick="switchTab('coach')">Behavior Coach</div>
+      <div class="nav-item" data-tab="dream" onclick="switchTab('dream')">Dream / Vision</div>
+      <div class="nav-item" data-tab="ask" onclick="switchTab('ask')">Ask Atlas</div>
       <div class="nav-item" data-tab="reports" onclick="switchTab('reports')">Weekly Reports</div>
       <div class="nav-item" data-tab="charts" onclick="switchTab('charts')">Charts</div>
-      <div class="nav-item" data-tab="comingsoon" onclick="switchTab('comingsoon')">Coming Soon</div>
       <div class="nav-item" id="admin-nav-item" style="display:none;" data-tab="admin" onclick="switchTab('admin')">Admin</div>
-      <div class="nav-item" onclick="handleLogout()" style="margin-top:20px; color:#f0a0a0;">Sign out</div>
+      <div class="nav-item" onclick="handleLogout()" style="color:#f0a0a0;">Sign out</div>
+      <div class="sidebar-footer">Made by Gofurov Firdavs with ❤️</div>
     </div>
     <div class="main">
       <div class="topbar">
-        <h1 id="page-title">Signals</h1>
-        <span class="pill" id="user-email-pill"></span>
+        <h1 id="page-title">Dashboard</h1>
       </div>
-      <div class="tab-panel active" id="tab-signals">
-        <div id="signals-list"></div>
+
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="grid">
+          <div class="card"><div class="stat-num" id="dash-equity">—</div><div class="stat-label">Simulated Equity</div></div>
+          <div class="card"><div class="stat-num" id="dash-winrate">—</div><div class="stat-label">Win Rate</div></div>
+          <div class="card"><div class="stat-num" id="dash-rrr">—</div><div class="stat-label">Avg R:R</div></div>
+          <div class="card"><div class="stat-num" id="dash-open">—</div><div class="stat-label">Active Signals</div></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Equity Curve (simulated)</h3>
+          <canvas id="equity-canvas"></canvas>
+        </div>
+        <div class="grid">
+          <div class="card" style="flex:1.3;">
+            <h3 style="margin-top:0;">Agents Desk</h3>
+            <div class="agent-grid" id="agents-desk"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0;">Recent Activity</h3>
+            <div id="activity-feed"></div>
+          </div>
+        </div>
       </div>
+
+      <div class="tab-panel" id="tab-signals"><div id="signals-list"></div></div>
+
       <div class="tab-panel" id="tab-simulation">
         <div class="card">
           <h3 style="margin-top:0;">Your settings</h3>
@@ -144,67 +157,81 @@
         </div>
         <div class="card">
           <h3 style="margin-top:0;">Ledger</h3>
-          <table>
-            <thead><tr><th>Date</th><th>Pair</th><th>Risk % used</th><th>Simulated P&L</th><th>Running balance</th></tr></thead>
-            <tbody id="sim-ledger-body"></tbody>
-          </table>
+          <table><thead><tr><th>Date</th><th>Pair</th><th>Risk % used</th><th>Simulated P&L</th><th>Running balance</th></tr></thead>
+          <tbody id="sim-ledger-body"></tbody></table>
         </div>
       </div>
+
       <div class="tab-panel" id="tab-journal">
         <div class="card">
           <h3 style="margin-top:0;">New entry</h3>
           <div class="form-row"><label>Date</label><input type="date" id="j-date"></div>
           <div class="form-row"><label>Instrument</label><input type="text" id="j-instrument" placeholder="XAUUSD"></div>
-          <div class="form-row"><label>Type</label>
-            <select id="j-type"><option value="long">Long</option><option value="short">Short</option></select>
-          </div>
+          <div class="form-row"><label>Type</label><select id="j-type"><option value="long">Long</option><option value="short">Short</option></select></div>
           <div class="form-row"><label>Volume</label><input type="number" step="0.01" id="j-volume"></div>
           <div class="form-row"><label>Stop loss</label><input type="number" step="0.00001" id="j-sl"></div>
           <div class="form-row"><label>Take profit</label><input type="number" step="0.00001" id="j-tp"></div>
           <div class="form-row"><label>P&L</label><input type="number" step="0.01" id="j-pnl"></div>
-          <div class="form-row"><label>Followed a signal?</label>
-            <select id="j-followed"><option value="true">Yes</option><option value="false">No — deviated</option></select>
-          </div>
+          <div class="form-row"><label>Followed a signal?</label><select id="j-followed"><option value="true">Yes</option><option value="false">No — deviated</option></select></div>
           <div class="form-row"><label>Notes</label><input type="text" id="j-notes"></div>
           <button class="btn-gold" onclick="addJournalEntry()">Add entry</button>
         </div>
         <div class="card">
           <h3 style="margin-top:0;">Your entries</h3>
-          <table>
-            <thead><tr><th>Date</th><th>Instrument</th><th>Type</th><th>Vol</th><th>P&L</th><th>Followed?</th></tr></thead>
-            <tbody id="journal-body"></tbody>
-          </table>
+          <table><thead><tr><th>Date</th><th>Instrument</th><th>Type</th><th>Vol</th><th>P&L</th><th>Followed?</th></tr></thead>
+          <tbody id="journal-body"></tbody></table>
         </div>
       </div>
-      <div class="tab-panel" id="tab-reports">
-        <div id="reports-list"></div>
+
+      <div class="tab-panel" id="tab-coach">
+        <div class="card">
+          <h3 style="margin-top:0;">Behavior Coach</h3>
+          <p style="color:var(--text-muted);">Reads your recent journal entries and gives you an honest read on your discipline patterns.</p>
+          <button class="btn-gold" onclick="runBehaviorCoach()">Analyze my recent trades</button>
+          <div id="coach-output" style="margin-top:14px;"></div>
+        </div>
       </div>
+
+      <div class="tab-panel" id="tab-dream">
+        <div class="card">
+          <h3 style="margin-top:0;">Your Goal</h3>
+          <div class="form-row"><label>Goal amount ($)</label><input type="number" id="dream-goal"></div>
+          <div class="form-row"><label>Your vision</label><textarea id="dream-vision" rows="3" placeholder="Why does this goal matter to you?"></textarea></div>
+          <button class="btn-gold" onclick="saveDream()">Save</button>
+        </div>
+        <div class="card">
+          <div class="stat-label">PROGRESS</div>
+          <div style="font-size:20px; font-weight:800; margin:6px 0;" id="dream-progress-text">—</div>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="dream-progress-bar" style="width:0%;"></div></div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-ask">
+        <div class="card">
+          <div id="chat-log"></div>
+          <div class="form-row">
+            <input type="text" id="chat-input" placeholder="Ask about your signals, journal, or performance...">
+            <button class="btn-gold" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="tab-reports"><div id="reports-list"></div></div>
+
       <div class="tab-panel" id="tab-charts">
         <div class="card">
           <div class="form-row"><label>Symbol</label>
             <select id="tv-symbol" onchange="loadTvChart()">
-              <option value="OANDA:XAUUSD">XAUUSD</option>
-              <option value="FX:EURUSD">EURUSD</option>
-              <option value="FX:GBPUSD">GBPUSD</option>
-              <option value="FX:USDJPY">USDJPY</option>
-              <option value="FX:USDCHF">USDCHF</option>
-              <option value="FX:AUDUSD">AUDUSD</option>
-              <option value="FX:USDCAD">USDCAD</option>
-              <option value="FX:NZDUSD">NZDUSD</option>
+              <option value="OANDA:XAUUSD">XAUUSD</option><option value="FX:EURUSD">EURUSD</option>
+              <option value="FX:GBPUSD">GBPUSD</option><option value="FX:USDJPY">USDJPY</option>
+              <option value="FX:USDCHF">USDCHF</option><option value="FX:AUDUSD">AUDUSD</option>
+              <option value="FX:USDCAD">USDCAD</option><option value="FX:NZDUSD">NZDUSD</option>
             </select>
           </div>
           <div id="tv-chart-container"></div>
         </div>
       </div>
-      <div class="tab-panel" id="tab-comingsoon">
-        <div class="grid">
-          <div class="card coming-soon"><h3>Discovery Engine</h3><p>Full historical pattern research library across every instrument.</p></div>
-          <div class="card coming-soon"><h3>Behavior Coach</h3><p>Tilt detection, decision-latency tracking, Ghost Portfolio reframing.</p></div>
-          <div class="card coming-soon"><h3>Prop-Firm Guardian</h3><p>Live account monitoring against firm rule sets, with auto-close protection.</p></div>
-          <div class="card coming-soon"><h3>Telegram Delivery</h3><p>Signals and weekly reports delivered straight to Telegram.</p></div>
-          <div class="card coming-soon"><h3>Chart Annotation Engine</h3><p>Auto-drawn trendlines, Fib levels, and target arrows, personalized to your style.</p></div>
-        </div>
-      </div>
+
       <div class="tab-panel" id="tab-admin">
         <div class="card">
           <h3 style="margin-top:0;">Create a login</h3>
@@ -216,10 +243,8 @@
         </div>
         <div class="card">
           <h3 style="margin-top:0;">All users</h3>
-          <table>
-            <thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Risk %</th><th>Actions</th></tr></thead>
-            <tbody id="admin-users-body"></tbody>
-          </table>
+          <table><thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Risk %</th><th>Actions</th></tr></thead>
+          <tbody id="admin-users-body"></tbody></table>
         </div>
       </div>
     </div>
@@ -229,7 +254,6 @@
 const SUPABASE_URL = "https://rdpxwccredxlldzekwzb.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_75fb4kJS-CNJbyQ--b3aHQ_fiaSlGgt";
 const EDGE_FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
-
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
@@ -239,76 +263,103 @@ async function handleLogin() {
   const password = document.getElementById("login-password").value;
   const errEl = document.getElementById("login-error");
   errEl.textContent = "";
-
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { errEl.textContent = error.message; return; }
-
-  const { data: profile, error: profileErr } = await sb
-    .from("profiles").select("*").eq("id", data.user.id).single();
-
+  const { data: profile, error: profileErr } = await sb.from("profiles").select("*").eq("id", data.user.id).single();
   if (profileErr || !profile) { errEl.textContent = "No profile found for this account."; await sb.auth.signOut(); return; }
-
   if (new Date(profile.expires_at) <= new Date()) {
     errEl.textContent = "Your access has expired. Contact the admin to renew it.";
-    await sb.auth.signOut();
-    return;
+    await sb.auth.signOut(); return;
   }
-
-  currentUser = data.user;
-  currentProfile = profile;
+  currentUser = data.user; currentProfile = profile;
   enterApp();
 }
-
-async function handleLogout() {
-  await sb.auth.signOut();
-  location.reload();
-}
-
+async function handleLogout() { await sb.auth.signOut(); location.reload(); }
 async function checkExistingSession() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) return;
   const { data: profile } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
   if (!profile || new Date(profile.expires_at) <= new Date()) { await sb.auth.signOut(); return; }
-  currentUser = session.user;
-  currentProfile = profile;
+  currentUser = session.user; currentProfile = profile;
   enterApp();
 }
-
 function enterApp() {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("app-shell").style.display = "block";
-  document.getElementById("user-email-pill").textContent = currentProfile.email + (currentProfile.role === "admin" ? " · admin" : "");
-  if (currentProfile.role === "admin") {
-    document.getElementById("admin-nav-item").style.display = "block";
-  }
+  if (currentProfile.role === "admin") document.getElementById("admin-nav-item").style.display = "block";
   document.getElementById("sim-balance").value = currentProfile.account_balance;
   document.getElementById("sim-risk").value = currentProfile.risk_percent;
   document.getElementById("j-date").value = new Date().toISOString().slice(0,10);
-
-  loadSignals();
-  loadSimulation();
-  loadJournal();
-  loadReports();
+  loadDashboard(); loadSignals(); loadSimulation(); loadJournal(); loadReports(); loadDream();
   if (currentProfile.role === "admin") loadAdminUsers();
 }
-
 function switchTab(tab) {
   document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
   document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add("active");
   document.querySelectorAll(".tab-panel").forEach(el => el.classList.remove("active"));
   document.getElementById("tab-" + tab).classList.add("active");
-  const titles = { signals:"Signals", simulation:"My Simulation", journal:"Journal", reports:"Weekly Reports", charts:"Charts", comingsoon:"Coming Soon", admin:"Admin" };
+  const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin" };
   document.getElementById("page-title").textContent = titles[tab];
   if (tab === "charts") loadTvChart();
+  if (tab === "dashboard") loadDashboard();
+}
+
+async function loadDashboard() {
+  const { data: ledger } = await sb.from("simulation_ledger").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
+  const { data: activeSignals } = await sb.from("signals").select("id").eq("status","active");
+  const { data: results } = await sb.from("signal_results").select("*");
+
+  const wins = (results||[]).filter(r=>r.outcome==="win").length;
+  const losses = (results||[]).filter(r=>r.outcome==="loss").length;
+  const winRate = (wins+losses)>0 ? Math.round((wins/(wins+losses))*1000)/10 : null;
+  const avgRRR = 3; // matches engine's fixed 3:1 target
+
+  document.getElementById("dash-equity").textContent = "$" + Number(currentProfile.account_balance).toLocaleString(undefined,{maximumFractionDigits:0});
+  document.getElementById("dash-winrate").textContent = winRate !== null ? winRate + "%" : "—";
+  document.getElementById("dash-rrr").textContent = "1:" + avgRRR;
+  document.getElementById("dash-open").textContent = (activeSignals||[]).length;
+
+  drawEquityCurve(ledger || []);
+
+  document.getElementById("agents-desk").innerHTML = [
+    ["Technical Analyst","Pattern detection"], ["Skeptic","Thesis invalidation"],
+    ["Risk Manager","Position sizing"], ["Behavior Coach","Discipline coaching"],
+    ["Reporting Agent","Weekly reports"]
+  ].map(([name,desc]) => `<div class="agent-tile"><div class="dot"></div><div class="name">${name}</div><div style="font-size:10px;color:var(--text-muted);">${desc}</div></div>`).join("");
+
+  const { data: activity } = await sb.from("activity_log").select("*").order("created_at",{ascending:false}).limit(8);
+  const feed = document.getElementById("activity-feed");
+  feed.innerHTML = (activity && activity.length) ? activity.map(a => `<div class="activity-item"><span>${a.message}</span><span style="color:var(--text-muted);">${new Date(a.created_at).toLocaleTimeString()}</span></div>`).join("")
+    : `<div class="empty-state" style="padding:10px;">No activity yet.</div>`;
+}
+
+function drawEquityCurve(ledger) {
+  const canvas = document.getElementById("equity-canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.offsetWidth; canvas.height = 180;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if (!ledger.length) {
+    ctx.fillStyle = "#9aa5bb"; ctx.font = "13px sans-serif";
+    ctx.fillText("No resolved signals yet — curve will populate as signals close.", 10, 90);
+    return;
+  }
+  const balances = ledger.map(l => l.running_balance);
+  const min = Math.min(...balances), max = Math.max(...balances);
+  const range = (max - min) || 1;
+  ctx.beginPath();
+  ctx.strokeStyle = "#16345f"; ctx.lineWidth = 2;
+  balances.forEach((b, i) => {
+    const x = (i / (balances.length - 1 || 1)) * (canvas.width - 20) + 10;
+    const y = canvas.height - 20 - ((b - min) / range) * (canvas.height - 40);
+    i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
 }
 
 async function loadSignals() {
   const { data: signals } = await sb.from("signals").select("*").order("created_at", { ascending: false }).limit(50);
   const el = document.getElementById("signals-list");
-  if (!signals || signals.length === 0) {
-    el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`;
-    return;
-  }
+  if (!signals || signals.length === 0) { el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`; return; }
   el.innerHTML = signals.map(s => `
     <div class="card signal-card ${s.direction}">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -328,45 +379,31 @@ async function loadSignals() {
       </div>
       <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
       ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
-    </div>
-  `).join("");
+    </div>`).join("");
 }
 
 async function saveSimSettings() {
   const balance = parseFloat(document.getElementById("sim-balance").value);
   const risk = parseFloat(document.getElementById("sim-risk").value);
   await sb.from("profiles").update({ account_balance: balance, risk_percent: risk }).eq("id", currentUser.id);
-  currentProfile.account_balance = balance;
-  currentProfile.risk_percent = risk;
+  currentProfile.account_balance = balance; currentProfile.risk_percent = risk;
   loadSimulation();
 }
-
 async function loadSimulation() {
   document.getElementById("sim-current-balance").textContent = "$" + Number(currentProfile.account_balance).toLocaleString(undefined, {maximumFractionDigits:2});
   const { data: ledger } = await sb.from("simulation_ledger").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false });
   document.getElementById("sim-total-signals").textContent = ledger?.length ?? 0;
   const body = document.getElementById("sim-ledger-body");
-  if (!ledger || ledger.length === 0) {
-    body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No resolved signals yet.</td></tr>`;
-    return;
-  }
-  body.innerHTML = ledger.map(l => `
-    <tr>
-      <td>${new Date(l.created_at).toLocaleDateString()}</td>
-      <td>${l.signal_id.slice(0,8)}</td>
-      <td>${l.risk_percent_used}%</td>
-      <td style="color:${l.simulated_pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${l.simulated_pnl >= 0 ? '+' : ''}${l.simulated_pnl.toFixed(2)}</td>
-      <td>$${l.running_balance.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
-    </tr>
-  `).join("");
+  if (!ledger || ledger.length === 0) { body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No resolved signals yet.</td></tr>`; return; }
+  body.innerHTML = ledger.map(l => `<tr><td>${new Date(l.created_at).toLocaleDateString()}</td><td>${l.signal_id.slice(0,8)}</td><td>${l.risk_percent_used}%</td>
+    <td style="color:${l.simulated_pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${l.simulated_pnl >= 0 ? '+' : ''}${l.simulated_pnl.toFixed(2)}</td>
+    <td>$${l.running_balance.toLocaleString(undefined,{maximumFractionDigits:2})}</td></tr>`).join("");
 }
 
 async function addJournalEntry() {
   const entry = {
-    user_id: currentUser.id,
-    trade_date: document.getElementById("j-date").value,
-    instrument: document.getElementById("j-instrument").value,
-    trade_type: document.getElementById("j-type").value,
+    user_id: currentUser.id, trade_date: document.getElementById("j-date").value,
+    instrument: document.getElementById("j-instrument").value, trade_type: document.getElementById("j-type").value,
     volume: parseFloat(document.getElementById("j-volume").value || 0),
     stop_loss: parseFloat(document.getElementById("j-sl").value || 0) || null,
     take_profit: parseFloat(document.getElementById("j-tp").value || 0) || null,
@@ -377,44 +414,70 @@ async function addJournalEntry() {
   await sb.from("journal_entries").insert(entry);
   loadJournal();
 }
-
 async function loadJournal() {
   const { data } = await sb.from("journal_entries").select("*").eq("user_id", currentUser.id).order("trade_date", { ascending: false });
   const body = document.getElementById("journal-body");
-  if (!data || data.length === 0) {
-    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No entries yet.</td></tr>`;
-    return;
-  }
-  body.innerHTML = data.map(e => `
-    <tr>
-      <td>${e.trade_date}</td>
-      <td>${e.instrument}</td>
-      <td><span class="badge badge-${e.trade_type}">${e.trade_type}</span></td>
-      <td>${e.volume}</td>
-      <td style="color:${(e.pnl||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${e.pnl ?? '—'}</td>
-      <td>${e.followed_signal ? '✓ followed' : 'deviated'}</td>
-    </tr>
-  `).join("");
+  if (!data || data.length === 0) { body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No entries yet.</td></tr>`; return; }
+  body.innerHTML = data.map(e => `<tr><td>${e.trade_date}</td><td>${e.instrument}</td><td><span class="badge badge-${e.trade_type}">${e.trade_type}</span></td>
+    <td>${e.volume}</td><td style="color:${(e.pnl||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${e.pnl ?? '—'}</td><td>${e.followed_signal ? '✓ followed' : 'deviated'}</td></tr>`).join("");
+}
+
+async function runBehaviorCoach() {
+  const out = document.getElementById("coach-output");
+  out.innerHTML = `<p style="color:var(--text-muted);">Analyzing...</p>`;
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(EDGE_FUNCTIONS_URL + "/ai-assistant", {
+    method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+    body: JSON.stringify({ action: "behavior_coach" }),
+  });
+  const result = await res.json();
+  out.innerHTML = result.ok ? `<div class="card" style="background:#f7f9fc;">${result.coaching}</div>` : `<p style="color:var(--red);">Error: ${result.error}</p>`;
+}
+
+async function loadDream() {
+  const { data } = await sb.from("user_goals").select("*").eq("user_id", currentUser.id).maybeSingle();
+  const goal = data?.goal_amount ?? 50000;
+  const vision = data?.vision_text ?? "";
+  document.getElementById("dream-goal").value = goal;
+  document.getElementById("dream-vision").value = vision;
+  const pct = Math.min(100, Math.round((currentProfile.account_balance / goal) * 100));
+  document.getElementById("dream-progress-text").textContent = `$${Number(currentProfile.account_balance).toLocaleString()} / $${Number(goal).toLocaleString()} (${pct}%)`;
+  document.getElementById("dream-progress-bar").style.width = pct + "%";
+}
+async function saveDream() {
+  const goal_amount = parseFloat(document.getElementById("dream-goal").value);
+  const vision_text = document.getElementById("dream-vision").value;
+  await sb.from("user_goals").upsert({ user_id: currentUser.id, goal_amount, vision_text, updated_at: new Date().toISOString() });
+  loadDream();
+}
+
+async function sendChat() {
+  const input = document.getElementById("chat-input");
+  const message = input.value.trim();
+  if (!message) return;
+  const log = document.getElementById("chat-log");
+  log.innerHTML += `<div class="chat-msg user">${message}</div>`;
+  input.value = "";
+  log.scrollTop = log.scrollHeight;
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(EDGE_FUNCTIONS_URL + "/ai-assistant", {
+    method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+    body: JSON.stringify({ action: "ask", message }),
+  });
+  const result = await res.json();
+  log.innerHTML += `<div class="chat-msg atlas">${result.ok ? result.reply : ("Error: " + result.error)}</div>`;
+  log.scrollTop = log.scrollHeight;
 }
 
 async function loadReports() {
   const { data } = await sb.from("weekly_reports").select("*").order("week_end", { ascending: false }).limit(12);
   const el = document.getElementById("reports-list");
-  if (!data || data.length === 0) {
-    el.innerHTML = `<div class="empty-state">No weekly reports yet — the first one generates this Saturday.</div>`;
-    return;
-  }
-  el.innerHTML = data.map(r => `
-    <div class="card">
-      <h3 style="margin-top:0;">Week of ${r.week_start} — ${r.week_end}</h3>
-      <div class="grid">
-        <div><div class="stat-num">${r.summary.win_rate ?? '—'}%</div><div class="stat-label">Win rate</div></div>
-        <div><div class="stat-num">${r.summary.total_signals}</div><div class="stat-label">Signals</div></div>
-        <div><div class="stat-num">${r.summary.wins}</div><div class="stat-label">Wins</div></div>
-        <div><div class="stat-num">${r.summary.losses}</div><div class="stat-label">Losses</div></div>
-      </div>
-    </div>
-  `).join("");
+  if (!data || data.length === 0) { el.innerHTML = `<div class="empty-state">No weekly reports yet — the first one generates this Saturday.</div>`; return; }
+  el.innerHTML = data.map(r => `<div class="card"><h3 style="margin-top:0;">Week of ${r.week_start} — ${r.week_end}</h3>
+    <div class="grid"><div><div class="stat-num">${r.summary.win_rate ?? '—'}%</div><div class="stat-label">Win rate</div></div>
+    <div><div class="stat-num">${r.summary.total_signals}</div><div class="stat-label">Signals</div></div>
+    <div><div class="stat-num">${r.summary.wins}</div><div class="stat-label">Wins</div></div>
+    <div><div class="stat-num">${r.summary.losses}</div><div class="stat-label">Losses</div></div></div></div>`).join("");
 }
 
 function loadTvChart() {
@@ -423,62 +486,33 @@ function loadTvChart() {
   container.innerHTML = "";
   const script = document.createElement("script");
   script.src = "https://s3.tradingview.com/tv.js";
-  script.onload = () => {
-    new TradingView.widget({
-      autosize: true,
-      symbol: symbol,
-      interval: "60",
-      timezone: "Etc/UTC",
-      theme: "light",
-      style: "1",
-      locale: "en",
-      container_id: "tv-chart-container",
-    });
-  };
+  script.onload = () => { new TradingView.widget({ autosize: true, symbol: symbol, interval: "60", timezone: "Etc/UTC", theme: "light", style: "1", locale: "en", container_id: "tv-chart-container" }); };
   document.body.appendChild(script);
 }
 
 async function callAdminFunction(payload) {
   const { data: { session } } = await sb.auth.getSession();
   const res = await fetch(EDGE_FUNCTIONS_URL + "/admin-users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+    method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
     body: JSON.stringify(payload),
   });
   return res.json();
 }
-
 async function adminCreateUser() {
   const msg = document.getElementById("admin-msg");
-  const result = await callAdminFunction({
-    action: "create_user",
-    email: document.getElementById("a-email").value,
-    password: document.getElementById("a-password").value,
-    expires_at: new Date(document.getElementById("a-expiry").value).toISOString(),
-  });
+  const result = await callAdminFunction({ action: "create_user", email: document.getElementById("a-email").value,
+    password: document.getElementById("a-password").value, expires_at: new Date(document.getElementById("a-expiry").value).toISOString() });
   msg.textContent = result.ok ? "Login created." : ("Error: " + result.error);
   msg.style.color = result.ok ? "var(--green)" : "var(--red)";
   if (result.ok) loadAdminUsers();
 }
-
-async function adminRevoke(userId) {
-  await callAdminFunction({ action: "revoke_now", user_id: userId });
-  loadAdminUsers();
-}
-
+async function adminRevoke(userId) { await callAdminFunction({ action: "revoke_now", user_id: userId }); loadAdminUsers(); }
 async function loadAdminUsers() {
   const result = await callAdminFunction({ action: "list_users" });
   const body = document.getElementById("admin-users-body");
   if (!result.ok) { body.innerHTML = `<tr><td colspan="5">Error loading users.</td></tr>`; return; }
-  body.innerHTML = result.users.map(u => `
-    <tr>
-      <td>${u.email}</td>
-      <td>${u.role}</td>
-      <td>${new Date(u.expires_at).toLocaleDateString()}</td>
-      <td>${u.risk_percent}%</td>
-      <td>${u.role !== 'admin' ? `<button class="btn-outline" onclick="adminRevoke('${u.id}')">Revoke now</button>` : ''}</td>
-    </tr>
-  `).join("");
+  body.innerHTML = result.users.map(u => `<tr><td>${u.email}</td><td>${u.role}</td><td>${new Date(u.expires_at).toLocaleDateString()}</td>
+    <td>${u.risk_percent}%</td><td>${u.role !== 'admin' ? `<button class="btn-outline" onclick="adminRevoke('${u.id}')">Revoke now</button>` : ''}</td></tr>`).join("");
 }
 
 checkExistingSession();
