@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --navy: #0b1f3a;
+    --navy-2: #16345f;
+    --gold: #c9a227;
+    --bg: #f4f7fc;
+    --card: #ffffff;
+    --border: #e3e7ee;
+    --text: #1a2439;
+    --text-muted: #6b7690;
+    --green: #147a4c;
+    --red: #a02828;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+  }
+  #login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(160deg, #0b1f3a 0%, #16345f 100%);
+  }
+  .login-box {
+    background: #fff; border-radius: 14px; padding: 40px 36px; width: 340px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  .login-box h1 { color: var(--navy); font-size: 26px; margin: 0 0 4px 0; letter-spacing: -0.5px; }
+  .login-box p.tag { color: var(--gold); font-weight: 700; font-size: 11px; letter-spacing: 2px; margin: 0 0 20px 0; }
+  input {
+    width: 100%; padding: 11px 12px; margin-bottom: 12px; border: 1.5px solid var(--border);
+    border-radius: 7px; font-size: 14px;
+  }
+  input:focus { outline: none; border-color: var(--navy-2); }
+  button {
+    cursor: pointer; border: none; border-radius: 7px; font-weight: 700; font-size: 13.5px;
+  }
+  .btn-primary { background: var(--navy); color: #fff; padding: 11px 16px; width: 100%; }
+  .btn-primary:hover { background: var(--navy-2); }
+  .btn-gold { background: var(--gold); color: #1a2439; padding: 9px 14px; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); padding: 8px 12px; }
+  #login-error { color: var(--red); font-size: 12.5px; margin-top: 4px; min-height: 16px; }
+  #app-shell { display: none; min-height: 100vh; }
+  .sidebar {
+    width: 220px; background: var(--navy); color: #fff; min-height: 100vh;
+    padding: 24px 0; flex-shrink: 0;
+  }
+  .sidebar .brand { padding: 0 22px 20px 22px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 14px; }
+  .sidebar .brand h2 { margin: 0; font-size: 20px; letter-spacing: 1px; }
+  .sidebar .brand span { color: var(--gold); font-size: 10px; letter-spacing: 2px; }
+  .nav-item {
+    padding: 11px 22px; cursor: pointer; font-size: 13.5px; color: #c3cee3; font-weight: 600;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.06); }
+  .nav-item.active { color: #fff; border-left-color: var(--gold); background: rgba(255,255,255,0.06); }
+  .main { flex: 1; padding: 30px 40px; max-width: 1100px; }
+  #main-flex { display: flex; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px; }
+  .topbar h1 { margin: 0; font-size: 22px; }
+  .pill { font-size: 11px; background:#eef2f9; color:var(--navy-2); padding:4px 10px; border-radius:12px; font-weight:700; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
+  .grid { display: flex; gap: 16px; flex-wrap: wrap; }
+  .grid > .card { flex: 1; min-width: 220px; }
+  .stat-num { font-size: 26px; font-weight: 800; color: var(--navy); }
+  .stat-label { font-size: 11.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; background: var(--navy); color: #fff; padding: 8px 10px; font-size: 11px; }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  tr:nth-child(even) td { background: #f9fafc; }
+  .badge { padding: 3px 9px; border-radius: 10px; font-size: 10.5px; font-weight: 700; }
+  .badge-long { background:#e1f3ea; color:var(--green); }
+  .badge-short { background:#fbe6e6; color:var(--red); }
+  .badge-active { background:#fdf1d6; color:#8a5a00; }
+  .badge-win { background:#e1f3ea; color:var(--green); }
+  .badge-loss { background:#fbe6e6; color:var(--red); }
+  .badge-invalidated { background:#eef2f9; color:var(--text-muted); }
+  .signal-card { border-left: 4px solid var(--navy-2); }
+  .signal-card.long { border-left-color: var(--green); }
+  .signal-card.short { border-left-color: var(--red); }
+  .signal-detail-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+  .signal-detail-grid div { background:#f7f9fc; border-radius:6px; padding:8px 10px; }
+  .signal-detail-grid label { display:block; font-size:10px; color:var(--text-muted); text-transform:uppercase; }
+  .signal-detail-grid span { font-weight:700; font-size:14px; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  .empty-state { text-align:center; padding: 40px 20px; color: var(--text-muted); }
+  .coming-soon { opacity: 0.55; }
+  .form-row { display:flex; gap:10px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+  .form-row label { font-size:12.5px; font-weight:600; color:var(--text-muted); min-width:110px; }
+  .form-row input, .form-row select { flex: 1; min-width: 140px; margin-bottom:0; }
+  #tv-chart-container { height: 500px; border-radius: 10px; overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-box">
+    <p class="tag">ATLAS ACCESS</p>
+    <h1>Sign in</h1>
+    <p style="color:var(--text-muted); font-size:12.5px; margin-top:0;">Accounts are created by the admin. Contact them if you need a login.</p>
+    <input type="email" id="login-email" placeholder="Email">
+    <input type="password" id="login-password" placeholder="Password">
+    <button class="btn-primary" onclick="handleLogin()">Sign in</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+<div id="app-shell">
+  <div id="main-flex">
+    <div class="sidebar">
+      <div class="brand"><h2>ATLAS</h2><span>TRADING INTELLIGENCE</span></div>
+      <div class="nav-item active" data-tab="signals" onclick="switchTab('signals')">Signals</div>
+      <div class="nav-item" data-tab="simulation" onclick="switchTab('simulation')">My Simulation</div>
+      <div class="nav-item" data-tab="journal" onclick="switchTab('journal')">Journal</div>
+      <div class="nav-item" data-tab="reports" onclick="switchTab('reports')">Weekly Reports</div>
+      <div class="nav-item" data-tab="charts" onclick="switchTab('charts')">Charts</div>
+      <div class="nav-item" data-tab="comingsoon" onclick="switchTab('comingsoon')">Coming Soon</div>
+      <div class="nav-item" id="admin-nav-item" style="display:none;" data-tab="admin" onclick="switchTab('admin')">Admin</div>
+      <div class="nav-item" onclick="handleLogout()" style="margin-top:20px; color:#f0a0a0;">Sign out</div>
+    </div>
+    <div class="main">
+      <div class="topbar">
+        <h1 id="page-title">Signals</h1>
+        <span class="pill" id="user-email-pill"></span>
+      </div>
+      <div class="tab-panel active" id="tab-signals">
+        <div id="signals-list"></div>
+      </div>
+      <div class="tab-panel" id="tab-simulation">
+        <div class="card">
+          <h3 style="margin-top:0;">Your settings</h3>
+          <div class="form-row"><label>Starting balance</label><input type="number" id="sim-balance"></div>
+          <div class="form-row"><label>Risk per trade (%)</label><input type="number" step="0.1" id="sim-risk"></div>
+          <button class="btn-gold" onclick="saveSimSettings()">Save</button>
+        </div>
+        <div class="grid">
+          <div class="card"><div class="stat-num" id="sim-current-balance">—</div><div class="stat-label">Current simulated balance</div></div>
+          <div class="card"><div class="stat-num" id="sim-total-signals">—</div><div class="stat-label">Signals included</div></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Ledger</h3>
+          <table>
+            <thead><tr><th>Date</th><th>Pair</th><th>Risk % used</th><th>Simulated P&L</th><th>Running balance</th></tr></thead>
+            <tbody id="sim-ledger-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-journal">
+        <div class="card">
+          <h3 style="margin-top:0;">New entry</h3>
+          <div class="form-row"><label>Date</label><input type="date" id="j-date"></div>
+          <div class="form-row"><label>Instrument</label><input type="text" id="j-instrument" placeholder="XAUUSD"></div>
+          <div class="form-row"><label>Type</label>
+            <select id="j-type"><option value="long">Long</option><option value="short">Short</option></select>
+          </div>
+          <div class="form-row"><label>Volume</label><input type="number" step="0.01" id="j-volume"></div>
+          <div class="form-row"><label>Stop loss</label><input type="number" step="0.00001" id="j-sl"></div>
+          <div class="form-row"><label>Take profit</label><input type="number" step="0.00001" id="j-tp"></div>
+          <div class="form-row"><label>P&L</label><input type="number" step="0.01" id="j-pnl"></div>
+          <div class="form-row"><label>Followed a signal?</label>
+            <select id="j-followed"><option value="true">Yes</option><option value="false">No — deviated</option></select>
+          </div>
+          <div class="form-row"><label>Notes</label><input type="text" id="j-notes"></div>
+          <button class="btn-gold" onclick="addJournalEntry()">Add entry</button>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">Your entries</h3>
+          <table>
+            <thead><tr><th>Date</th><th>Instrument</th><th>Type</th><th>Vol</th><th>P&L</th><th>Followed?</th></tr></thead>
+            <tbody id="journal-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-reports">
+        <div id="reports-list"></div>
+      </div>
+      <div class="tab-panel" id="tab-charts">
+        <div class="card">
+          <div class="form-row"><label>Symbol</label>
+            <select id="tv-symbol" onchange="loadTvChart()">
+              <option value="OANDA:XAUUSD">XAUUSD</option>
+              <option value="FX:EURUSD">EURUSD</option>
+              <option value="FX:GBPUSD">GBPUSD</option>
+              <option value="FX:USDJPY">USDJPY</option>
+              <option value="FX:USDCHF">USDCHF</option>
+              <option value="FX:AUDUSD">AUDUSD</option>
+              <option value="FX:USDCAD">USDCAD</option>
+              <option value="FX:NZDUSD">NZDUSD</option>
+            </select>
+          </div>
+          <div id="tv-chart-container"></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-comingsoon">
+        <div class="grid">
+          <div class="card coming-soon"><h3>Discovery Engine</h3><p>Full historical pattern research library across every instrument.</p></div>
+          <div class="card coming-soon"><h3>Behavior Coach</h3><p>Tilt detection, decision-latency tracking, Ghost Portfolio reframing.</p></div>
+          <div class="card coming-soon"><h3>Prop-Firm Guardian</h3><p>Live account monitoring against firm rule sets, with auto-close protection.</p></div>
+          <div class="card coming-soon"><h3>Telegram Delivery</h3><p>Signals and weekly reports delivered straight to Telegram.</p></div>
+          <div class="card coming-soon"><h3>Chart Annotation Engine</h3><p>Auto-drawn trendlines, Fib levels, and target arrows, personalized to your style.</p></div>
+        </div>
+      </div>
+      <div class="tab-panel" id="tab-admin">
+        <div class="card">
+          <h3 style="margin-top:0;">Create a login</h3>
+          <div class="form-row"><label>Email</label><input type="email" id="a-email"></div>
+          <div class="form-row"><label>Temporary password</label><input type="text" id="a-password"></div>
+          <div class="form-row"><label>Access expires</label><input type="date" id="a-expiry"></div>
+          <button class="btn-gold" onclick="adminCreateUser()">Create login</button>
+          <div id="admin-msg" style="margin-top:8px; font-size:12.5px;"></div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top:0;">All users</h3>
+          <table>
+            <thead><tr><th>Email</th><th>Role</th><th>Expires</th><th>Risk %</th><th>Actions</th></tr></thead>
+            <tbody id="admin-users-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+const SUPABASE_URL = "https://rdpxwccredxlldzekwzb.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_75fb4kJS-CNJbyQ--b3aHQ_fiaSlGgt";
+const EDGE_FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let currentUser = null;
+let currentProfile = null;
+
+async function handleLogin() {
+  const email = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-password").value;
+  const errEl = document.getElementById("login-error");
+  errEl.textContent = "";
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) { errEl.textContent = error.message; return; }
+
+  const { data: profile, error: profileErr } = await sb
+    .from("profiles").select("*").eq("id", data.user.id).single();
+
+  if (profileErr || !profile) { errEl.textContent = "No profile found for this account."; await sb.auth.signOut(); return; }
+
+  if (new Date(profile.expires_at) <= new Date()) {
+    errEl.textContent = "Your access has expired. Contact the admin to renew it.";
+    await sb.auth.signOut();
+    return;
+  }
+
+  currentUser = data.user;
+  currentProfile = profile;
+  enterApp();
+}
+
+async function handleLogout() {
+  await sb.auth.signOut();
+  location.reload();
+}
+
+async function checkExistingSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  const { data: profile } = await sb.from("profiles").select("*").eq("id", session.user.id).single();
+  if (!profile || new Date(profile.expires_at) <= new Date()) { await sb.auth.signOut(); return; }
+  currentUser = session.user;
+  currentProfile = profile;
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app-shell").style.display = "block";
+  document.getElementById("user-email-pill").textContent = currentProfile.email + (currentProfile.role === "admin" ? " · admin" : "");
+  if (currentProfile.role === "admin") {
+    document.getElementById("admin-nav-item").style.display = "block";
+  }
+  document.getElementById("sim-balance").value = currentProfile.account_balance;
+  document.getElementById("sim-risk").value = currentProfile.risk_percent;
+  document.getElementById("j-date").value = new Date().toISOString().slice(0,10);
+
+  loadSignals();
+  loadSimulation();
+  loadJournal();
+  loadReports();
+  if (currentProfile.role === "admin") loadAdminUsers();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+  document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add("active");
+  document.querySelectorAll(".tab-panel").forEach(el => el.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  const titles = { signals:"Signals", simulation:"My Simulation", journal:"Journal", reports:"Weekly Reports", charts:"Charts", comingsoon:"Coming Soon", admin:"Admin" };
+  document.getElementById("page-title").textContent = titles[tab];
+  if (tab === "charts") loadTvChart();
+}
+
+async function loadSignals() {
+  const { data: signals } = await sb.from("signals").select("*").order("created_at", { ascending: false }).limit(50);
+  const el = document.getElementById("signals-list");
+  if (!signals || signals.length === 0) {
+    el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`;
+    return;
+  }
+  el.innerHTML = signals.map(s => `
+    <div class="card signal-card ${s.direction}">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong style="font-size:16px;">${s.pair}</strong>
+          <span class="badge badge-${s.direction}">${s.direction.toUpperCase()}</span>
+          <span class="badge badge-active">${s.timeframe}</span>
+          ${s.status !== 'active' ? `<span class="badge badge-${s.status === 'hit_tp' ? 'win' : s.status === 'hit_sl' ? 'loss' : 'invalidated'}">${s.status.replace('_',' ')}</span>` : ''}
+        </div>
+        <span style="font-size:11.5px; color:var(--text-muted);">${new Date(s.created_at).toLocaleString()}</span>
+      </div>
+      <div class="signal-detail-grid">
+        <div><label>Entry</label><span>${s.entry}</span></div>
+        <div><label>Stop loss</label><span>${s.stop_loss}</span></div>
+        <div><label>Take profit</label><span>${s.take_profit}</span></div>
+        <div><label>Pattern</label><span>${s.pattern_type}</span></div>
+      </div>
+      <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
+      ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
+    </div>
+  `).join("");
+}
+
+async function saveSimSettings() {
+  const balance = parseFloat(document.getElementById("sim-balance").value);
+  const risk = parseFloat(document.getElementById("sim-risk").value);
+  await sb.from("profiles").update({ account_balance: balance, risk_percent: risk }).eq("id", currentUser.id);
+  currentProfile.account_balance = balance;
+  currentProfile.risk_percent = risk;
+  loadSimulation();
+}
+
+async function loadSimulation() {
+  document.getElementById("sim-current-balance").textContent = "$" + Number(currentProfile.account_balance).toLocaleString(undefined, {maximumFractionDigits:2});
+  const { data: ledger } = await sb.from("simulation_ledger").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false });
+  document.getElementById("sim-total-signals").textContent = ledger?.length ?? 0;
+  const body = document.getElementById("sim-ledger-body");
+  if (!ledger || ledger.length === 0) {
+    body.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No resolved signals yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = ledger.map(l => `
+    <tr>
+      <td>${new Date(l.created_at).toLocaleDateString()}</td>
+      <td>${l.signal_id.slice(0,8)}</td>
+      <td>${l.risk_percent_used}%</td>
+      <td style="color:${l.simulated_pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${l.simulated_pnl >= 0 ? '+' : ''}${l.simulated_pnl.toFixed(2)}</td>
+      <td>$${l.running_balance.toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+    </tr>
+  `).join("");
+}
+
+async function addJournalEntry() {
+  const entry = {
+    user_id: currentUser.id,
+    trade_date: document.getElementById("j-date").value,
+    instrument: document.getElementById("j-instrument").value,
+    trade_type: document.getElementById("j-type").value,
+    volume: parseFloat(document.getElementById("j-volume").value || 0),
+    stop_loss: parseFloat(document.getElementById("j-sl").value || 0) || null,
+    take_profit: parseFloat(document.getElementById("j-tp").value || 0) || null,
+    pnl: parseFloat(document.getElementById("j-pnl").value || 0) || null,
+    followed_signal: document.getElementById("j-followed").value === "true",
+    notes: document.getElementById("j-notes").value,
+  };
+  await sb.from("journal_entries").insert(entry);
+  loadJournal();
+}
+
+async function loadJournal() {
+  const { data } = await sb.from("journal_entries").select("*").eq("user_id", currentUser.id).order("trade_date", { ascending: false });
+  const body = document.getElementById("journal-body");
+  if (!data || data.length === 0) {
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">No entries yet.</td></tr>`;
+    return;
+  }
+  body.innerHTML = data.map(e => `
+    <tr>
+      <td>${e.trade_date}</td>
+      <td>${e.instrument}</td>
+      <td><span class="badge badge-${e.trade_type}">${e.trade_type}</span></td>
+      <td>${e.volume}</td>
+      <td style="color:${(e.pnl||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${e.pnl ?? '—'}</td>
+      <td>${e.followed_signal ? '✓ followed' : 'deviated'}</td>
+    </tr>
+  `).join("");
+}
+
+async function loadReports() {
+  const { data } = await sb.from("weekly_reports").select("*").order("week_end", { ascending: false }).limit(12);
+  const el = document.getElementById("reports-list");
+  if (!data || data.length === 0) {
+    el.innerHTML = `<div class="empty-state">No weekly reports yet — the first one generates this Saturday.</div>`;
+    return;
+  }
+  el.innerHTML = data.map(r => `
+    <div class="card">
+      <h3 style="margin-top:0;">Week of ${r.week_start} — ${r.week_end}</h3>
+      <div class="grid">
+        <div><div class="stat-num">${r.summary.win_rate ?? '—'}%</div><div class="stat-label">Win rate</div></div>
+        <div><div class="stat-num">${r.summary.total_signals}</div><div class="stat-label">Signals</div></div>
+        <div><div class="stat-num">${r.summary.wins}</div><div class="stat-label">Wins</div></div>
+        <div><div class="stat-num">${r.summary.losses}</div><div class="stat-label">Losses</div></div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function loadTvChart() {
+  const symbol = document.getElementById("tv-symbol").value;
+  const container = document.getElementById("tv-chart-container");
+  container.innerHTML = "";
+  const script = document.createElement("script");
+  script.src = "https://s3.tradingview.com/tv.js";
+  script.onload = () => {
+    new TradingView.widget({
+      autosize: true,
+      symbol: symbol,
+      interval: "60",
+      timezone: "Etc/UTC",
+      theme: "light",
+      style: "1",
+      locale: "en",
+      container_id: "tv-chart-container",
+    });
+  };
+  document.body.appendChild(script);
+}
+
+async function callAdminFunction(payload) {
+  const { data: { session } } = await sb.auth.getSession();
+  const res = await fetch(EDGE_FUNCTIONS_URL + "/admin-users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+    body: JSON.stringify(payload),
+  });
+  return res.json();
+}
+
+async function adminCreateUser() {
+  const msg = document.getElementById("admin-msg");
+  const result = await callAdminFunction({
+    action: "create_user",
+    email: document.getElementById("a-email").value,
+    password: document.getElementById("a-password").value,
+    expires_at: new Date(document.getElementById("a-expiry").value).toISOString(),
+  });
+  msg.textContent = result.ok ? "Login created." : ("Error: " + result.error);
+  msg.style.color = result.ok ? "var(--green)" : "var(--red)";
+  if (result.ok) loadAdminUsers();
+}
+
+async function adminRevoke(userId) {
+  await callAdminFunction({ action: "revoke_now", user_id: userId });
+  loadAdminUsers();
+}
+
+async function loadAdminUsers() {
+  const result = await callAdminFunction({ action: "list_users" });
+  const body = document.getElementById("admin-users-body");
+  if (!result.ok) { body.innerHTML = `<tr><td colspan="5">Error loading users.</td></tr>`; return; }
+  body.innerHTML = result.users.map(u => `
+    <tr>
+      <td>${u.email}</td>
+      <td>${u.role}</td>
+      <td>${new Date(u.expires_at).toLocaleDateString()}</td>
+      <td>${u.risk_percent}%</td>
+      <td>${u.role !== 'admin' ? `<button class="btn-outline" onclick="adminRevoke('${u.id}')">Revoke now</button>` : ''}</td>
+    </tr>
+  `).join("");
+}
+
+checkExistingSession();
+</script>
+</body>
+</html>
