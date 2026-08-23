@@ -332,8 +332,9 @@ function switchTab(tab) {
   document.getElementById("tab-" + tab).classList.add("active");
   const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin" };
   document.getElementById("page-title").textContent = titles[tab];
-  if (tab === "charts") loadTvChart();
-  if (tab === "dashboard") loadDashboard();
+if (tab === "charts") loadTvChart();
+if (tab === "dashboard") loadDashboard();
+if (tab === "signals") loadSignals();
   if (window.innerWidth <= 768) document.getElementById("sidebar").classList.add("collapsed");
 }
 
