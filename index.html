@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATLAS</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon-192_1.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192_1.png">
 <meta name="theme-color" content="#0b1f3a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -876,7 +876,7 @@ async function installApp() {
   deferredInstallPrompt = null;
   document.getElementById('install-nav-item').style.display = 'none';
 }
-if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
 checkExistingSession();
 </script>
