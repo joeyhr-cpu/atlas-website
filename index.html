@@ -404,7 +404,7 @@ async function checkExistingSession() {
   enterApp();
 }
 function enterApp() {
-  const savedTheme = localStorage.getItem("atlas-theme") || "dark";
+const savedTheme = localStorage.getItem("atlas-theme") || "dark";
   document.getElementById("theme-toggle").textContent = savedTheme === "dark" ? "☀️ Light" : "🌙 Dark";
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("app-shell").style.display = "block";
@@ -414,6 +414,7 @@ function enterApp() {
   document.getElementById("j-date").value = new Date().toISOString().slice(0,10);
   loadDashboard(); loadSignals(); loadSimulation(); loadJournal(); loadReports(); loadDream(); loadChatHistory(); loadRules(); loadQuotes();
   startDashboardAutoRefresh();
+  startQuotesAutoRefresh();
   if (currentProfile.role === "admin") loadAdminUsers();
 }
 function switchTab(tab) {
@@ -598,6 +599,14 @@ async function calculateFloatingPnl(activeSignals) {
 }
 let dashboardRefreshInterval = null;
 function startDashboardAutoRefresh() {
+  let quotesRefreshInterval = null;
+function startQuotesAutoRefresh() {
+  if (quotesRefreshInterval) clearInterval(quotesRefreshInterval);
+  quotesRefreshInterval = setInterval(() => {
+    if (document.getElementById("tab-quotes").classList.contains("active")) loadQuotes();
+    if (document.getElementById("tab-positions").classList.contains("active")) loadPositions();
+  }, 300000);
+}
   if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
   dashboardRefreshInterval = setInterval(() => { if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard(); }, 30000);
 }
@@ -618,7 +627,7 @@ async function loadQuotes() {
     ALL_PAIRS.forEach(p => {
       const row = document.getElementById(`quote-${p.replace('/','')}`);
       const price = result.prices[p];
-      if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
+      if (row && price) { row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5); console.log("Updated row for", p); }
     });
   } catch (e) {
     console.error("Quotes fetch failed:", e);
