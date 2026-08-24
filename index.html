@@ -29,6 +29,8 @@
   .btn-primary { background: var(--navy); color: #fff; padding: 11px 16px; width: 100%; }
   .btn-gold { background: var(--gold); color: #1a2439; padding: 9px 14px; }
   .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); padding: 8px 12px; }
+  .btn-red { background: var(--red); color: #fff; padding: 6px 12px; font-size: 12px; }
+  .btn-green { background: var(--green); color: #fff; padding: 6px 12px; font-size: 12px; }
   #login-error { color: var(--red); font-size: 12.5px; margin-top: 4px; min-height: 16px; }
   #app-shell { display: none; min-height: 100vh; }
   .sidebar { width: 220px; background: var(--sidebar); color: #fff; min-height: 100vh; padding: 24px 0; flex-shrink: 0; display: flex; flex-direction: column; position: sticky; top: 0; }
@@ -47,14 +49,14 @@
   #hamburger { display:none; background:var(--navy); color:#fff; padding:8px 12px; font-size:16px; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 16px; }
   .grid { display: flex; gap: 16px; flex-wrap: wrap; }
-  .grid > .card { flex: 1; min-width: 180px; }
-  .stat-num { font-size: 24px; font-weight: 800; color: var(--text); }
+  .grid > .card { flex: 1; min-width: 160px; }
+  .stat-num { font-size: 22px; font-weight: 800; color: var(--text); }
   .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   th { text-align: left; background: var(--navy); color: #fff; padding: 8px 10px; font-size: 11px; }
   td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text); }
   tr:nth-child(even) td { background: rgba(128,128,128,0.05); }
-  .badge { padding: 3px 9px; border-radius: 10px; font-size: 10.5px; font-weight: 700; }
+  .badge { padding: 3px 9px; border-radius: 10px; font-size: 10.5px; font-weight: 700; margin-left:4px; }
   .badge-long { background:#e1f3ea; color:var(--green); }
   .badge-short { background:#fbe6e6; color:var(--red); }
   .badge-active { background:#fdf1d6; color:#8a5a00; }
@@ -88,6 +90,7 @@
   .chat-msg { padding:10px 14px; border-radius:10px; margin-bottom:8px; font-size:13.5px; max-width: 80%; }
   .chat-msg.user { background: var(--navy); color:#fff; margin-left:auto; }
   .chat-msg.atlas { background: rgba(128,128,128,0.1); color:var(--text); }
+  .warning-box { border-left:4px solid var(--gold); background:rgba(201,162,39,0.1); padding:10px 14px; border-radius:6px; margin-bottom:10px; font-size:13px; }
   @media (max-width: 768px) {
     #main-flex { flex-direction: column; }
     .sidebar { width: 100%; min-height: auto; position: relative; padding: 12px 0; }
@@ -142,14 +145,13 @@
         <div class="grid">
           <div class="card"><div class="stat-num" id="dash-equity">—</div><div class="stat-label">Simulated Equity</div></div>
           <div class="card"><div class="stat-num" id="dash-winrate">—</div><div class="stat-label">Win Rate</div></div>
-          <div class="card"><div class="stat-num" id="dash-rrr">—</div><div class="stat-label">Avg R:R</div></div>
+          <div class="card"><div class="stat-num" id="dash-expectancy">—</div><div class="stat-label">Expectancy (R)</div></div>
+          <div class="card"><div class="stat-num" id="dash-calibration">—</div><div class="stat-label">Calibration</div></div>
           <div class="card"><div class="stat-num" id="dash-open">—</div><div class="stat-label">Active Signals</div></div>
         </div>
         <div class="card"><h3 style="margin-top:0;">Equity Curve (simulated)</h3><canvas id="equity-canvas"></canvas></div>
-        <div class="card">
-          <h3 style="margin-top:0;">Pattern Analyzer</h3>
-          <div id="pattern-analyzer-grid" class="grid"></div>
-        </div>
+        <div class="card"><h3 style="margin-top:0;">Pattern Analyzer</h3><div id="pattern-analyzer-grid" class="grid"></div></div>
+        <div class="card"><h3 style="margin-top:0;">Would-Have-Won (skipped signals)</h3><div id="ghost-tracking"></div></div>
         <div class="grid">
           <div class="card" style="flex:1.3;"><h3 style="margin-top:0;">Agents Desk</h3><div class="agent-grid" id="agents-desk"></div></div>
           <div class="card"><h3 style="margin-top:0;">Recent Activity</h3><div id="activity-feed"></div></div>
@@ -187,7 +189,7 @@
           <div class="form-row"><label>P&L</label><input type="number" step="0.01" id="j-pnl"></div>
           <div class="form-row"><label>Followed a signal?</label><select id="j-followed"><option value="true">Yes</option><option value="false">No — deviated</option></select></div>
           <div class="form-row"><label>Notes</label><input type="text" id="j-notes"></div>
-          <div id="premortem-warning"></div>
+          <div id="journal-warning"></div>
           <button class="btn-gold" onclick="addJournalEntry()">Add entry</button>
         </div>
         <div class="card"><h3 style="margin-top:0;">Your entries</h3>
@@ -286,10 +288,7 @@ function toggleTheme() {
   document.getElementById("theme-toggle").textContent = isDark ? "🌙 Dark" : "☀️ Light";
   localStorage.setItem("atlas-theme", isDark ? "light" : "dark");
 }
-(function initTheme(){
-  const saved = localStorage.getItem("atlas-theme") || "dark";
-  document.documentElement.setAttribute("data-theme", saved);
-})();
+(function initTheme(){ document.documentElement.setAttribute("data-theme", localStorage.getItem("atlas-theme") || "dark"); })();
 
 async function handleLogin() {
   const email = document.getElementById("login-email").value.trim();
@@ -333,27 +332,42 @@ function switchTab(tab) {
   document.getElementById("tab-" + tab).classList.add("active");
   const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin" };
   document.getElementById("page-title").textContent = titles[tab];
-if (tab === "charts") loadTvChart();
-if (tab === "dashboard") loadDashboard();
-document.getElementById("refresh-btn").style.display = tab === "dashboard" ? "inline-block" : "none";
-if (tab === "signals") loadSignals();
+  if (tab === "charts") loadTvChart();
+  if (tab === "dashboard") loadDashboard();
+  if (tab === "signals") loadSignals();
+  document.getElementById("refresh-btn").style.display = tab === "dashboard" ? "inline-block" : "none";
   if (window.innerWidth <= 768) document.getElementById("sidebar").classList.add("collapsed");
 }
 
+// ---------- DASHBOARD ----------
 async function loadDashboard() {
   const { data: ledger } = await sb.from("simulation_ledger").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
   const { data: activeSignals } = await sb.from("signals").select("*").eq("status","active");
-  const { data: results } = await sb.from("signal_results").select("*");
+  const { data: results } = await sb.from("signal_results").select("*, signals(entry, stop_loss, confidence)");
   const wins = (results||[]).filter(r=>r.outcome==="win").length;
   const losses = (results||[]).filter(r=>r.outcome==="loss").length;
   const winRate = (wins+losses)>0 ? Math.round((wins/(wins+losses))*1000)/10 : null;
+
+  const resolved = (results||[]).filter(r => (r.outcome==="win"||r.outcome==="loss") && r.signals);
+  let expectancy = null;
+  if (resolved.length > 0) {
+    const rMultiples = resolved.map(r => { const sd = Math.abs(r.signals.entry - r.signals.stop_loss) || 0.0001; return r.pips / sd; });
+    expectancy = rMultiples.reduce((a,b)=>a+b,0) / rMultiples.length;
+  }
+  const withConfidence = resolved.filter(r => r.signals.confidence != null);
+  let calibrationText = "—";
+  if (withConfidence.length > 0 && winRate !== null) {
+    const avgConfidence = withConfidence.reduce((a,r)=>a+r.signals.confidence,0) / withConfidence.length;
+    calibrationText = `±${Math.abs(avgConfidence - winRate).toFixed(1)}%`;
+  }
 
   const floatingPnl = await calculateFloatingPnl(activeSignals || []);
   const liveEquity = currentProfile.account_balance + floatingPnl;
 
   document.getElementById("dash-equity").innerHTML = `$${liveEquity.toLocaleString(undefined,{maximumFractionDigits:0})} ${floatingPnl !== 0 ? `<span style="font-size:13px; color:${floatingPnl>=0?'var(--green)':'var(--red)'}">(${floatingPnl>=0?'+':''}${floatingPnl.toFixed(2)} floating)</span>` : ''}`;
   document.getElementById("dash-winrate").textContent = winRate !== null ? winRate + "%" : "—";
-  document.getElementById("dash-rrr").textContent = "1:3";
+  document.getElementById("dash-expectancy").textContent = expectancy !== null ? `${expectancy >= 0 ? '+' : ''}${expectancy.toFixed(2)}R` : "—";
+  document.getElementById("dash-calibration").textContent = calibrationText;
   document.getElementById("dash-open").textContent = (activeSignals||[]).length;
   drawEquityCurve(ledger || []);
 
@@ -364,49 +378,28 @@ async function loadDashboard() {
   ].map(([n,d]) => `<div class="agent-tile"><div class="dot"></div><div class="name">${n}</div><div style="font-size:10px;color:var(--text-muted);">${d}</div></div>`).join("");
 
   const { data: patterns } = await sb.from("pattern_stats").select("*");
-  const pg = document.getElementById("pattern-analyzer-grid");
-  pg.innerHTML = (patterns && patterns.length) ? patterns.map(p => `
-    <div class="card">
-      <div style="font-weight:700;">${p.pattern_type}</div>
-      <div class="stat-num" style="font-size:18px;">${p.win_rate ?? '—'}%</div>
-      <div class="stat-label">${p.total_signals} signals · decay watch: ${p.recent_sample_size||0}/20</div>
-    </div>`).join("") : `<div class="empty-state">No pattern data yet.</div>`;
+  document.getElementById("pattern-analyzer-grid").innerHTML = (patterns && patterns.length) ? patterns.map(p => `
+    <div class="card"><div style="font-weight:700;">${p.pattern_type}</div><div class="stat-num" style="font-size:18px;">${p.win_rate ?? '—'}%</div>
+    <div class="stat-label">${p.total_signals} signals · decay watch: ${p.recent_sample_size||0}/20</div></div>`).join("") : `<div class="empty-state">No pattern data yet.</div>`;
+
+  await loadGhostTracking();
 
   const { data: activity } = await sb.from("activity_log").select("*").order("created_at",{ascending:false}).limit(8);
   document.getElementById("activity-feed").innerHTML = (activity && activity.length) ? activity.map(a => `<div class="activity-item"><span>${a.message}</span><span style="color:var(--text-muted);">${new Date(a.created_at).toLocaleTimeString()}</span></div>`).join("") : `<div class="empty-state" style="padding:10px;">No activity yet.</div>`;
 }
 
-async function calculateFloatingPnl(activeSignals) {
-  if (!activeSignals.length) return 0;
-  const pairs = [...new Set(activeSignals.map(s => s.pair))];
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", {
-      method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
-      body: JSON.stringify({ pairs }),
-    });
-    const result = await res.json();
-    if (!result.ok) return 0;
-    let total = 0;
-    for (const s of activeSignals) {
-      const price = result.prices[s.pair];
-      if (!price) continue;
-      const stopDistance = Math.abs(s.entry - s.stop_loss) || 0.0001;
-      const riskAmount = (currentProfile.account_balance * currentProfile.risk_percent) / 100;
-      const positionSize = riskAmount / stopDistance;
-      const priceDelta = s.direction === "long" ? price - s.entry : s.entry - price;
-      total += positionSize * priceDelta;
-    }
-    return total;
-  } catch (e) { return 0; }
-}
-
-let dashboardRefreshInterval = null;
-function startDashboardAutoRefresh() {
-  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
-  dashboardRefreshInterval = setInterval(() => {
-    if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard();
-  }, 30000);
+async function loadGhostTracking() {
+  const { data: skipped } = await sb.from("signal_responses").select("*, signals(pair, direction, pattern_type, entry, take_profit, stop_loss)").eq("user_id", currentUser.id).eq("action", "skip");
+  const el = document.getElementById("ghost-tracking");
+  if (!skipped || skipped.length === 0) { el.innerHTML = `<div class="empty-state">No skipped signals yet.</div>`; return; }
+  const signalIds = skipped.map(s => s.signal_id);
+  const { data: outcomes } = await sb.from("signal_results").select("*").in("signal_id", signalIds);
+  const outcomeMap = {}; (outcomes||[]).forEach(o => outcomeMap[o.signal_id] = o.outcome);
+  el.innerHTML = skipped.map(s => {
+    const outcome = outcomeMap[s.signal_id];
+    if (!outcome) return `<div class="activity-item"><span>${s.signals?.pair} ${s.signals?.direction} — still open</span><span class="badge badge-active">pending</span></div>`;
+    return `<div class="activity-item"><span>${s.signals?.pair} ${s.signals?.direction} (${s.signals?.pattern_type})</span><span class="badge badge-${outcome==='win'?'win':outcome==='loss'?'loss':'invalidated'}">would have ${outcome}</span></div>`;
+  }).join("");
 }
 
 function drawEquityCurve(ledger) {
@@ -426,7 +419,6 @@ function drawEquityCurve(ledger) {
   });
   ctx.stroke();
 }
-
 function drawSignalChart(canvasId, candles, signal) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !candles || !candles.length) return;
@@ -449,43 +441,78 @@ function drawSignalChart(canvasId, candles, signal) {
     ctx.strokeStyle = color; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = color; ctx.font = "10px sans-serif"; ctx.fillText(label, w-70, y-3);
   };
-  drawLine(signal.entry, "#16345f", "Entry");
-  drawLine(signal.stop_loss, "#a02828", "SL");
-  drawLine(signal.take_profit, "#147a4c", "TP");
+  drawLine(signal.entry, "#16345f", "Entry"); drawLine(signal.stop_loss, "#a02828", "SL"); drawLine(signal.take_profit, "#147a4c", "TP");
 }
 
+async function calculateFloatingPnl(activeSignals) {
+  if (!activeSignals.length) return 0;
+  const pairs = [...new Set(activeSignals.map(s => s.pair))];
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs }) });
+    const result = await res.json();
+    if (!result.ok) return 0;
+    let total = 0;
+    for (const s of activeSignals) {
+      const price = result.prices[s.pair]; if (!price) continue;
+      const stopDistance = Math.abs(s.entry - s.stop_loss) || 0.0001;
+      const riskAmount = (currentProfile.account_balance * currentProfile.risk_percent) / 100;
+      const positionSize = riskAmount / stopDistance;
+      const priceDelta = s.direction === "long" ? price - s.entry : s.entry - price;
+      total += positionSize * priceDelta;
+    }
+    return total;
+  } catch (e) { return 0; }
+}
+let dashboardRefreshInterval = null;
+function startDashboardAutoRefresh() {
+  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
+  dashboardRefreshInterval = setInterval(() => { if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard(); }, 30000);
+}
+
+// ---------- SIGNALS ----------
 async function loadSignals() {
   const { data: signals } = await sb.from("signals").select("*").order("created_at", { ascending: false }).limit(50);
+  const { data: myResponses } = await sb.from("signal_responses").select("*").eq("user_id", currentUser.id);
+  const responseMap = {}; (myResponses||[]).forEach(r => responseMap[r.signal_id] = r.action);
   const el = document.getElementById("signals-list");
   if (!signals || signals.length === 0) { el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`; return; }
-  el.innerHTML = signals.map((s,idx) => `
+  el.innerHTML = signals.map((s,idx) => {
+    const myAction = responseMap[s.id];
+    const showButtons = s.status === "active" && !myAction;
+    return `
     <div class="card signal-card ${s.direction}">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
         <div><strong style="font-size:16px;">${s.pair}</strong>
           <span class="badge badge-${s.direction}">${s.direction.toUpperCase()}</span>
           <span class="badge badge-active">${s.timeframe}</span>
+          ${s.confidence != null ? `<span class="badge badge-active">${s.confidence}% confidence</span>` : ''}
           ${s.status !== 'active' ? `<span class="badge badge-${s.status === 'hit_tp' ? 'win' : s.status === 'hit_sl' ? 'loss' : 'invalidated'}">${s.status.replace('_',' ')}</span>` : ''}
+          ${myAction ? `<span class="badge badge-invalidated">you: ${myAction}</span>` : ''}
         </div>
         <span style="font-size:11.5px; color:var(--text-muted);">${new Date(s.created_at).toLocaleString()}</span>
       </div>
-    <div class="signal-detail-grid">
-  <div><label>Entry</label><span>${Number(s.entry).toFixed(5)}</span></div>
-  <div><label>Stop loss</label><span>${Number(s.stop_loss).toFixed(5)}</span></div>
-  <div><label>Take profit</label><span>${Number(s.take_profit).toFixed(5)}</span></div>
-  <div><label>Pattern</label><span>${s.pattern_type}</span></div>
-  <div><label>Suggested lot size</label><span>${(() => {
-  const contractSize = s.pair === "XAU/USD" ? 100 : 100000;
-  const rawUnits = (currentProfile.account_balance * currentProfile.risk_percent / 100) / Math.abs(s.entry - s.stop_loss);
-  return (rawUnits / contractSize).toFixed(2);
-})()} lots</span></div>
-</div>
+      <div class="signal-detail-grid">
+        <div><label>Entry</label><span>${Number(s.entry).toFixed(5)}</span></div>
+        <div><label>Stop loss</label><span>${Number(s.stop_loss).toFixed(5)}</span></div>
+        <div><label>Take profit</label><span>${Number(s.take_profit).toFixed(5)}</span></div>
+        <div><label>Pattern</label><span>${s.pattern_type}</span></div>
+        <div><label>Suggested lot size</label><span>${(() => { const cs = s.pair === "XAU/USD" ? 100 : 100000; const ru = (currentProfile.account_balance * currentProfile.risk_percent / 100) / Math.abs(s.entry - s.stop_loss); return (ru/cs).toFixed(2); })()} lots</span></div>
+      </div>
       <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
       ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
+      ${showButtons ? `<div style="margin-top:10px;"><button class="btn-green" onclick="respondToSignal('${s.id}','approve')">✓ Approve</button> <button class="btn-red" onclick="respondToSignal('${s.id}','skip')">Skip</button></div>` : ''}
       ${s.chart_url ? `<img src="${s.chart_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : `<canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>`}
-    </div>`).join("");
-  signals.forEach((s,idx) => { if (s.candles_snapshot) drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s); });
+    </div>`;
+  }).join("");
+  signals.forEach((s,idx) => { if (!s.chart_url && s.candles_snapshot) drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s); });
+}
+async function respondToSignal(signalId, action) {
+  await sb.from("signal_responses").upsert({ user_id: currentUser.id, signal_id: signalId, action }, { onConflict: "user_id,signal_id" });
+  loadSignals();
 }
 
+// ---------- SIMULATION ----------
 async function saveSimSettings() {
   const balance = parseFloat(document.getElementById("sim-balance").value);
   const risk = parseFloat(document.getElementById("sim-risk").value);
@@ -504,11 +531,25 @@ async function loadSimulation() {
     <td>$${l.running_balance.toLocaleString(undefined,{maximumFractionDigits:2})}</td></tr>`).join("");
 }
 
+// ---------- JOURNAL (with revenge-trade + streak warnings) ----------
 async function addJournalEntry() {
   const volume = parseFloat(document.getElementById("j-volume").value || 0);
-  if (volume > (currentProfile.account_balance * currentProfile.risk_percent / 100 / 10)) {
-    document.getElementById("premortem-warning").innerHTML = `<div class="card" style="border-left:4px solid var(--gold); background:rgba(201,162,39,0.1);"><b>Pre-mortem check:</b> this size looks large relative to your usual risk %. Top reason this could fail: position sizing outpacing your own stated risk plan. Proceeding anyway?</div>`;
+  const { data: recent } = await sb.from("journal_entries").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false }).limit(5);
+  const warnEl = document.getElementById("journal-warning");
+  let warnings = [];
+  if (recent && recent.length > 0) {
+    const avgVolume = recent.reduce((a,r)=>a+(r.volume||0),0) / recent.length;
+    const lastPnl = recent[0].pnl;
+    if (lastPnl != null && lastPnl < 0 && volume > avgVolume * 1.5) {
+      warnings.push("Revenge-trade check: your last logged trade was a loss, and this size is notably larger than your recent average. Worth a pause before confirming.");
+    }
+    if (recent.length >= 3 && recent.slice(0,3).every(r => (r.pnl||0) > 0) && volume > avgVolume * 1.3) {
+      warnings.push("Streak check: you're on a 3+ win streak and this size is larger than your average — a common spot where oversizing creeps in.");
+    }
   }
+  if (warnings.length > 0) { warnEl.innerHTML = warnings.map(w => `<div class="warning-box">${w}</div>`).join(""); }
+  else { warnEl.innerHTML = ""; }
+
   const entry = {
     user_id: currentUser.id, trade_date: document.getElementById("j-date").value,
     instrument: document.getElementById("j-instrument").value, trade_type: document.getElementById("j-type").value,
@@ -519,7 +560,6 @@ async function addJournalEntry() {
     notes: document.getElementById("j-notes").value,
   };
   await sb.from("journal_entries").insert(entry);
-  document.getElementById("premortem-warning").innerHTML = "";
   loadJournal();
 }
 async function loadJournal() {
@@ -530,6 +570,7 @@ async function loadJournal() {
     <td>${e.volume}</td><td style="color:${(e.pnl||0) >= 0 ? 'var(--green)' : 'var(--red)'}">${e.pnl ?? '—'}</td><td>${e.followed_signal ? '✓ followed' : 'deviated'}</td></tr>`).join("");
 }
 
+// ---------- BEHAVIOR COACH ----------
 async function runBehaviorCoach() {
   const out = document.getElementById("coach-output");
   out.innerHTML = `<p style="color:var(--text-muted);">Analyzing...</p>`;
@@ -539,6 +580,7 @@ async function runBehaviorCoach() {
   out.innerHTML = result.ok ? `<div class="card">${result.coaching}</div>` : `<p style="color:var(--red);">Error: ${result.error}</p>`;
 }
 
+// ---------- RULES ----------
 async function authorRule() {
   const rule_text = document.getElementById("rule-input").value.trim();
   if (!rule_text) return;
@@ -561,6 +603,7 @@ async function loadRules() {
   el.innerHTML = result.rules.map(r => `<div class="card"><b>${r.rule_text}</b><div class="badge badge-active" style="margin-top:6px;">${r.status}</div></div>`).join("");
 }
 
+// ---------- DREAM / VISION ----------
 async function loadDream() {
   const { data } = await sb.from("user_goals").select("*").eq("user_id", currentUser.id).maybeSingle();
   const goal = data?.goal_amount ?? 50000;
@@ -577,6 +620,7 @@ async function saveDream() {
   loadDream();
 }
 
+// ---------- ASK ATLAS ----------
 async function loadChatHistory() {
   const { data: { session } } = await sb.auth.getSession();
   const res = await fetch(EDGE_FUNCTIONS_URL + "/ai-assistant", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ action: "get_history" }) });
@@ -598,6 +642,7 @@ async function sendChat() {
   log.scrollTop = log.scrollHeight;
 }
 
+// ---------- WEEKLY REPORTS ----------
 async function loadReports() {
   const { data } = await sb.from("weekly_reports").select("*").order("week_end", { ascending: false }).limit(12);
   const el = document.getElementById("reports-list");
@@ -609,6 +654,7 @@ async function loadReports() {
     <div><div class="stat-num">${r.summary.losses}</div><div class="stat-label">Losses</div></div></div></div>`).join("");
 }
 
+// ---------- CHARTS ----------
 function loadTvChart() {
   const symbol = document.getElementById("tv-symbol").value;
   const container = document.getElementById("tv-chart-container");
@@ -619,6 +665,7 @@ function loadTvChart() {
   document.body.appendChild(script);
 }
 
+// ---------- ADMIN ----------
 async function callAdminFunction(payload) {
   const { data: { session } } = await sb.auth.getSession();
   const res = await fetch(EDGE_FUNCTIONS_URL + "/admin-users", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify(payload) });
