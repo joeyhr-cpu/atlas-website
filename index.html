@@ -610,9 +610,6 @@ function startQuotesAutoRefresh() {
     if (document.getElementById("tab-positions").classList.contains("active")) loadPositions();
   }, 300000);
 }
-  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
-  dashboardRefreshInterval = setInterval(() => { if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard(); }, 30000);
-}
 
 // ---------- QUOTES ----------
 async function loadQuotes() {
