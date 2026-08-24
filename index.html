@@ -136,7 +136,7 @@
       <div class="sidebar-footer">Made by Gofurov Firdavs with ❤️</div>
     </div>
     <div class="main">
-      <div class="topbar"><h1 id="page-title">Dashboard</h1></div>
+      <div class="topbar"><h1 id="page-title">Dashboard</h1><button class="btn-outline" onclick="loadDashboard()" style="display:none;" id="refresh-btn">↻ Refresh</button></div>
 
       <div class="tab-panel active" id="tab-dashboard">
         <div class="grid">
@@ -323,6 +323,7 @@ function enterApp() {
   document.getElementById("sim-risk").value = currentProfile.risk_percent;
   document.getElementById("j-date").value = new Date().toISOString().slice(0,10);
   loadDashboard(); loadSignals(); loadSimulation(); loadJournal(); loadReports(); loadDream(); loadChatHistory(); loadRules();
+  startDashboardAutoRefresh();
   if (currentProfile.role === "admin") loadAdminUsers();
 }
 function switchTab(tab) {
@@ -334,19 +335,23 @@ function switchTab(tab) {
   document.getElementById("page-title").textContent = titles[tab];
 if (tab === "charts") loadTvChart();
 if (tab === "dashboard") loadDashboard();
+document.getElementById("refresh-btn").style.display = tab === "dashboard" ? "inline-block" : "none";
 if (tab === "signals") loadSignals();
   if (window.innerWidth <= 768) document.getElementById("sidebar").classList.add("collapsed");
 }
 
 async function loadDashboard() {
   const { data: ledger } = await sb.from("simulation_ledger").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: true });
-  const { data: activeSignals } = await sb.from("signals").select("id").eq("status","active");
+  const { data: activeSignals } = await sb.from("signals").select("*").eq("status","active");
   const { data: results } = await sb.from("signal_results").select("*");
   const wins = (results||[]).filter(r=>r.outcome==="win").length;
   const losses = (results||[]).filter(r=>r.outcome==="loss").length;
   const winRate = (wins+losses)>0 ? Math.round((wins/(wins+losses))*1000)/10 : null;
 
-  document.getElementById("dash-equity").textContent = "$" + Number(currentProfile.account_balance).toLocaleString(undefined,{maximumFractionDigits:0});
+  const floatingPnl = await calculateFloatingPnl(activeSignals || []);
+  const liveEquity = currentProfile.account_balance + floatingPnl;
+
+  document.getElementById("dash-equity").innerHTML = `$${liveEquity.toLocaleString(undefined,{maximumFractionDigits:0})} ${floatingPnl !== 0 ? `<span style="font-size:13px; color:${floatingPnl>=0?'var(--green)':'var(--red)'}">(${floatingPnl>=0?'+':''}${floatingPnl.toFixed(2)} floating)</span>` : ''}`;
   document.getElementById("dash-winrate").textContent = winRate !== null ? winRate + "%" : "—";
   document.getElementById("dash-rrr").textContent = "1:3";
   document.getElementById("dash-open").textContent = (activeSignals||[]).length;
@@ -369,6 +374,39 @@ async function loadDashboard() {
 
   const { data: activity } = await sb.from("activity_log").select("*").order("created_at",{ascending:false}).limit(8);
   document.getElementById("activity-feed").innerHTML = (activity && activity.length) ? activity.map(a => `<div class="activity-item"><span>${a.message}</span><span style="color:var(--text-muted);">${new Date(a.created_at).toLocaleTimeString()}</span></div>`).join("") : `<div class="empty-state" style="padding:10px;">No activity yet.</div>`;
+}
+
+async function calculateFloatingPnl(activeSignals) {
+  if (!activeSignals.length) return 0;
+  const pairs = [...new Set(activeSignals.map(s => s.pair))];
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token },
+      body: JSON.stringify({ pairs }),
+    });
+    const result = await res.json();
+    if (!result.ok) return 0;
+    let total = 0;
+    for (const s of activeSignals) {
+      const price = result.prices[s.pair];
+      if (!price) continue;
+      const stopDistance = Math.abs(s.entry - s.stop_loss) || 0.0001;
+      const riskAmount = (currentProfile.account_balance * currentProfile.risk_percent) / 100;
+      const positionSize = riskAmount / stopDistance;
+      const priceDelta = s.direction === "long" ? price - s.entry : s.entry - price;
+      total += positionSize * priceDelta;
+    }
+    return total;
+  } catch (e) { return 0; }
+}
+
+let dashboardRefreshInterval = null;
+function startDashboardAutoRefresh() {
+  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
+  dashboardRefreshInterval = setInterval(() => {
+    if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard();
+  }, 30000);
 }
 
 function drawEquityCurve(ledger) {
