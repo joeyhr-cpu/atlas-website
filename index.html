@@ -599,7 +599,10 @@ async function calculateFloatingPnl(activeSignals) {
 }
 let dashboardRefreshInterval = null;
 function startDashboardAutoRefresh() {
-  let quotesRefreshInterval = null;
+  if (dashboardRefreshInterval) clearInterval(dashboardRefreshInterval);
+  dashboardRefreshInterval = setInterval(() => { if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard(); }, 30000);
+}
+let quotesRefreshInterval = null;
 function startQuotesAutoRefresh() {
   if (quotesRefreshInterval) clearInterval(quotesRefreshInterval);
   quotesRefreshInterval = setInterval(() => {
