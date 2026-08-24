@@ -609,7 +609,11 @@ async function loadQuotes() {
     const { data: { session } } = await sb.auth.getSession();
     const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs: ALL_PAIRS }) });
     const result = await res.json();
-    if (!result.ok) return;
+    if (!result.ok) {
+  console.error("live-price returned error:", result.error);
+  ALL_PAIRS.forEach(p => { const row = document.getElementById(`quote-${p.replace('/','')}`); if (row) row.querySelector(".price").textContent = "unavailable"; });
+  return;
+}
     ALL_PAIRS.forEach(p => {
       const row = document.getElementById(`quote-${p.replace('/','')}`);
       const price = result.prices[p];
