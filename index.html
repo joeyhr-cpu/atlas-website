@@ -9,6 +9,15 @@
 <meta name="theme-color" content="#0b1f3a">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+  #fullchart-overlay {
+  display: none; position: fixed; inset: 0; z-index: 99999;
+  background: #0b1420; flex-direction: column;
+}
+#fullchart-overlay.open { display: flex; }
+#fullchart-overlay .fc-header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; color:#fff; }
+#fullchart-overlay .fc-close { background: rgba(255,255,255,0.1); color:#fff; padding:8px 14px; border-radius:8px; }
+#fullchart-canvas { flex: 1; width: 100%; }
+body.chart-open { overflow: hidden; }
   :root {
     --navy: #0b1f3a; --navy-2: #16345f; --gold: #c9a227;
     --bg: #f4f7fc; --card: #ffffff; --border: #e3e7ee;
@@ -118,10 +127,11 @@
     .sidebar .nav-item, .sidebar-footer { display: none; }
     .sidebar { padding: 10px 0; min-height: auto; }
     #app-shell { padding-bottom: 60px; }
-    .bottom-nav {
-      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
-      z-index: 999999; padding: 6px 0;
+   .bottom-nav {
+  display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 999999; padding: 6px 60px 6px 0;
+}
     }
     .bottom-nav-item { flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px; cursor: pointer; padding: 6px 2px; }
     .bottom-nav-item.active { color: var(--gold); }
@@ -149,6 +159,13 @@
   </div>
 </div>
 <div id="app-shell">
+  <div id="fullchart-overlay">
+  <div class="fc-header">
+    <strong id="fc-title">Chart</strong>
+    <button class="fc-close" onclick="closeFullChart()">✕ Close</button>
+  </div>
+  <canvas id="fullchart-canvas"></canvas>
+</div>
   <div id="main-flex">
     <div class="bottom-nav">
       <div class="bottom-nav-item active" data-tab="quotes" onclick="switchTab('quotes')"><span class="icon">📈</span>Quotes</div>
@@ -480,7 +497,21 @@ function drawEquityCurve(ledger) {
   });
   ctx.stroke();
 }
-
+  
+function openFullChart(idx) {
+  const s = window._signalsCache?.[idx];
+  if (!s) return;
+  document.getElementById("fc-title").textContent = `${s.pair} ${s.direction.toUpperCase()} — ${s.pattern_type}`;
+  document.getElementById("fullchart-overlay").classList.add("open");
+  document.body.classList.add("chart-open");
+  setTimeout(() => {
+    if (s.candles_snapshot) drawSignalChart("fullchart-canvas", s.candles_snapshot, s);
+  }, 50);
+}
+function closeFullChart() {
+  document.getElementById("fullchart-overlay").classList.remove("open");
+  document.body.classList.remove("chart-open");
+}
 function drawSignalChart(canvasId, candles, signal) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !candles || !candles.length) return;
@@ -636,7 +667,7 @@ async function loadSignals() {
         ${myAction ? `<p style="margin:6px 0 0 0; font-size:12px;"><span class="badge badge-invalidated">you: ${myAction}</span></p>` : ''}
         ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
         ${showButtons ? `<div style="margin-top:10px;"><button class="btn-green" onclick="event.stopPropagation(); respondToSignal('${s.id}','approve')">✓ Approve</button> <button class="btn-red" onclick="event.stopPropagation(); respondToSignal('${s.id}','skip')">Skip</button></div>` : ''}
-        ${s.chart_url ? `<img src="${s.chart_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : `<canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>`}
+        <button class="btn-outline" style="width:100%; margin-top:10px;" onclick="event.stopPropagation(); openFullChart(${idx})">🔍 View Full Chart</button>
       </div>
     </div>`;
   }).join("");
