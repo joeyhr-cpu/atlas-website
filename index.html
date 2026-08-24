@@ -138,6 +138,7 @@
       <div class="nav-item" data-tab="reports" onclick="switchTab('reports')">Weekly Reports</div>
       <div class="nav-item" data-tab="charts" onclick="switchTab('charts')">Charts</div>
       <div class="nav-item" id="admin-nav-item" style="display:none;" data-tab="admin" onclick="switchTab('admin')">Admin</div>
+      <div class="nav-item" id="install-nav-item" style="display:none;" onclick="installApp()">📲 Install App</div>
       <div class="nav-item" onclick="handleLogout()" style="color:#f0a0a0;">Sign out</div>
       <div class="sidebar-footer">Made by Gofurov Firdavs with ❤️</div>
     </div>
@@ -689,7 +690,23 @@ async function loadAdminUsers() {
   body.innerHTML = result.users.map(u => `<tr><td>${u.email}</td><td>${u.role}</td><td>${new Date(u.expires_at).toLocaleDateString()}</td>
     <td>${u.risk_percent}%</td><td>${u.role !== 'admin' ? `<button class="btn-outline" onclick="adminRevoke('${u.id}')">Revoke now</button>` : ''}</td></tr>`).join("");
 }
-
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const item = document.getElementById('install-nav-item');
+  if (item) item.style.display = 'block';
+});
+async function installApp() {
+  if (!deferredInstallPrompt) {
+    alert("Your browser doesn't support one-tap install here. On iPhone: tap Share → Add to Home Screen. On Android/Chrome: check the browser menu for 'Install app'.");
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById('install-nav-item').style.display = 'none';
+}
 checkExistingSession();
 </script>
 </body>
