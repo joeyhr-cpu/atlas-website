@@ -616,8 +616,9 @@ async function loadQuotes() {
       if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
     });
   } catch (e) {
-  console.error("Quotes fetch failed:", e);
-  ALL_PAIRS.forEach(p => { const row = document.getElementById(`quote-${p.replace('/','')}`); if (row) row.querySelector(".price").textContent = "unavailable"; });
+    console.error("Quotes fetch failed:", e);
+    ALL_PAIRS.forEach(p => { const row = document.getElementById(`quote-${p.replace('/','')}`); if (row) row.querySelector(".price").textContent = "unavailable"; });
+  }
 }
 
 // ---------- OPEN POSITIONS ----------
