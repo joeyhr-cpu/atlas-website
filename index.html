@@ -708,6 +708,9 @@ async function installApp() {
   document.getElementById('install-nav-item').style.display = 'none';
 }
 checkExistingSession();
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js');
+}
 </script>
 </body>
 </html>
