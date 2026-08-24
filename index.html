@@ -22,6 +22,15 @@
   }
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; background: var(--bg); color: var(--text); transition: background 0.2s, color 0.2s; }
+  #splash-screen {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(160deg, #0b1f3a 0%, #16345f 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; transition: opacity 0.4s;
+  }
+  #splash-screen h1 { font-size: 32px; letter-spacing: 2px; margin: 0 0 6px 0; }
+  #splash-screen span { color: var(--gold); font-size: 11px; letter-spacing: 3px; }
+  #splash-screen.hidden { opacity: 0; pointer-events: none; }
   #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #0b1f3a 0%, #16345f 100%); }
   .login-box { background: #fff; border-radius: 14px; padding: 40px 36px; width: 340px; max-width: 90vw; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
   .login-box h1 { color: var(--navy); font-size: 26px; margin: 0 0 4px 0; letter-spacing: -0.5px; }
@@ -87,10 +96,7 @@
   .agent-tile div.name { font-size:12px; font-weight:700; }
   .activity-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
   #equity-canvas { width:100%; height:180px; }
-.signal-chart-canvas { width:100%; height:280px; background:#0b1420; border-radius:8px; }
-@media (max-width: 768px) {
-  .signal-chart-canvas { height:340px; }
-}
+  .signal-chart-canvas { width:100%; height:280px; background:#0b1420; border-radius:8px; }
   .progress-bar-bg { background: rgba(128,128,128,0.15); border-radius: 10px; height: 10px; overflow:hidden; margin: 8px 0; }
   .progress-bar-fill { background: linear-gradient(90deg, var(--navy-2), var(--gold)); height: 100%; }
   #chat-log { max-height: 380px; overflow-y: auto; margin-bottom: 12px; }
@@ -98,42 +104,39 @@
   .chat-msg.user { background: var(--navy); color:#fff; margin-left:auto; }
   .chat-msg.atlas { background: rgba(128,128,128,0.1); color:var(--text); }
   .warning-box { border-left:4px solid var(--gold); background:rgba(201,162,39,0.1); padding:10px 14px; border-radius:6px; margin-bottom:10px; font-size:13px; }
+  .bottom-nav { display: none; }
+  .quote-row { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid var(--border); }
+  .quote-row .pair-name { font-weight:700; font-size:14px; }
+  .quote-row .price { font-size:15px; font-weight:700; }
+  .position-row { padding:14px 16px; border-bottom:1px solid var(--border); }
+  .position-row .top-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .position-row .pnl { font-size:16px; font-weight:800; }
+  .position-row .details { font-size:11.5px; color:var(--text-muted); }
   @media (max-width: 768px) {
     #main-flex { flex-direction: column; }
-    .sidebar { width: 100%; min-height: auto; position: relative; padding: 12px 0; }
-    .sidebar .brand { padding: 0 16px 12px 16px; }
     #hamburger { display:none; }
-    .sidebar.collapsed .nav-item, .sidebar.collapsed .sidebar-footer { display: none; }
+    .sidebar .nav-item, .sidebar-footer { display: none; }
+    .sidebar { padding: 10px 0; min-height: auto; }
+    #app-shell { padding-bottom: 60px; }
+    .bottom-nav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
+      z-index: 999999; padding: 6px 0;
+    }
+    .bottom-nav-item { flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px; cursor: pointer; padding: 6px 2px; }
+    .bottom-nav-item.active { color: var(--gold); }
+    .bottom-nav-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
     .main { padding: 16px; }
     .agent-grid { grid-template-columns: repeat(2, 1fr); }
     .signal-detail-grid { grid-template-columns: repeat(2, 1fr); }
     .grid > .card { min-width: 100%; }
+    .signal-chart-canvas { height:340px; }
   }
-  .bottom-nav { display: none; }
-@media (max-width: 768px) {
-  .sidebar .nav-item, .sidebar-footer { display: none; }
-  .sidebar { padding: 10px 0; min-height: auto; }
-  #app-shell { padding-bottom: 60px; }
-  .bottom-nav {
-    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
-    z-index: 999999; padding: 6px 0;
-  }
-  .bottom-nav-item {
-    flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px;
-    cursor: pointer; padding: 6px 2px;
-  }
-  .bottom-nav-item.active { color: var(--gold); }
-  .bottom-nav-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
-  .quote-row { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid var(--border); }
-  .quote-row .pair-name { font-weight:700; font-size:14px; }
-  .quote-row .price { font-size:15px; font-weight:700; }
-  .quote-row .change-up { color: var(--green); }
-  .quote-row .change-down { color: var(--red); }
-}
 </style>
 </head>
 <body>
+<div id="splash-screen"><h1>ATLAS</h1><span>TRADING INTELLIGENCE</span></div>
+
 <div id="login-screen">
   <div class="login-box">
     <p class="tag">ATLAS ACCESS</p>
@@ -148,12 +151,12 @@
 <div id="app-shell">
   <div id="main-flex">
     <div class="bottom-nav">
-  <div class="bottom-nav-item active" data-tab="quotes" onclick="switchTab('quotes')"><span class="icon">📈</span>Quotes</div>
-  <div class="bottom-nav-item" data-tab="signals" onclick="switchTab('signals')"><span class="icon">🔔</span>Signals</div>
-  <div class="bottom-nav-item" data-tab="charts" onclick="switchTab('charts')"><span class="icon">📊</span>Charts</div>
-  <div class="bottom-nav-item" data-tab="journal" onclick="switchTab('journal')"><span class="icon">📓</span>Journal</div>
-  <div class="bottom-nav-item" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="icon">☰</span>More</div>
-</div>
+      <div class="bottom-nav-item active" data-tab="quotes" onclick="switchTab('quotes')"><span class="icon">📈</span>Quotes</div>
+      <div class="bottom-nav-item" data-tab="positions" onclick="switchTab('positions')"><span class="icon">💼</span>Trade</div>
+      <div class="bottom-nav-item" data-tab="signals" onclick="switchTab('signals')"><span class="icon">🔔</span>Signals</div>
+      <div class="bottom-nav-item" data-tab="charts" onclick="switchTab('charts')"><span class="icon">📊</span>Charts</div>
+      <div class="bottom-nav-item" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="icon">☰</span>More</div>
+    </div>
     <div class="sidebar" id="sidebar">
       <div class="brand">
         <div><h2>ATLAS</h2><span>TRADING INTELLIGENCE</span></div>
@@ -161,6 +164,8 @@
       </div>
       <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('collapsed')">☰ Menu</button>
       <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">Dashboard</div>
+      <div class="nav-item" data-tab="quotes" onclick="switchTab('quotes')">Quotes</div>
+      <div class="nav-item" data-tab="positions" onclick="switchTab('positions')">Open Positions</div>
       <div class="nav-item" data-tab="signals" onclick="switchTab('signals')">Signals</div>
       <div class="nav-item" data-tab="simulation" onclick="switchTab('simulation')">My Simulation</div>
       <div class="nav-item" data-tab="journal" onclick="switchTab('journal')">Journal</div>
@@ -194,11 +199,15 @@
           <div class="card"><h3 style="margin-top:0;">Recent Activity</h3><div id="activity-feed"></div></div>
         </div>
       </div>
-<div class="tab-panel" id="tab-quotes">
-  <div class="card" style="padding:0;">
-    <div id="quotes-list"></div>
-  </div>
-</div>
+
+      <div class="tab-panel" id="tab-quotes">
+        <div class="card" style="padding:0;"><div id="quotes-list"></div></div>
+      </div>
+
+      <div class="tab-panel" id="tab-positions">
+        <div id="positions-list"></div>
+      </div>
+
       <div class="tab-panel" id="tab-signals"><div id="signals-list"></div></div>
 
       <div class="tab-panel" id="tab-simulation">
@@ -322,6 +331,11 @@ const EDGE_FUNCTIONS_URL = SUPABASE_URL + "/functions/v1";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 let currentProfile = null;
+const ALL_PAIRS = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD"];
+
+window.addEventListener('load', () => {
+  setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden'); }, 600);
+});
 
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -375,31 +389,15 @@ function switchTab(tab) {
   if (bottomEl) bottomEl.classList.add("active");
   document.querySelectorAll(".tab-panel").forEach(el => el.classList.remove("active"));
   document.getElementById("tab-" + tab).classList.add("active");
-  const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin", quotes:"Quotes" };
+  const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin", quotes:"Quotes", positions:"Open Positions" };
   document.getElementById("page-title").textContent = titles[tab];
   if (tab === "charts") loadTvChart();
   if (tab === "dashboard") loadDashboard();
   if (tab === "signals") loadSignals();
   if (tab === "quotes") loadQuotes();
+  if (tab === "positions") loadPositions();
   document.getElementById("refresh-btn").style.display = tab === "dashboard" ? "inline-block" : "none";
   if (window.innerWidth <= 768) document.getElementById("sidebar").classList.add("collapsed");
-}
-
-async function loadQuotes() {
-  const pairs = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD"];
-  const el = document.getElementById("quotes-list");
-  el.innerHTML = pairs.map(p => `<div class="quote-row" id="quote-${p.replace('/','')}"><span class="pair-name">${p}</span><span class="price">loading...</span></div>`).join("");
-  try {
-    const { data: { session } } = await sb.auth.getSession();
-    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs }) });
-    const result = await res.json();
-    if (!result.ok) return;
-    pairs.forEach(p => {
-      const row = document.getElementById(`quote-${p.replace('/','')}`);
-      const price = result.prices[p];
-      if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
-    });
-  } catch (e) {}
 }
 
 // ---------- DASHBOARD ----------
@@ -482,6 +480,7 @@ function drawEquityCurve(ledger) {
   });
   ctx.stroke();
 }
+
 function drawSignalChart(canvasId, candles, signal) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !candles || !candles.length) return;
@@ -491,16 +490,12 @@ function drawSignalChart(canvasId, candles, signal) {
   canvas.width = cssWidth * dpr; canvas.height = cssHeight * dpr;
   ctx.scale(dpr, dpr);
   const w = cssWidth, h = cssHeight, padRight = 55, padLeft = 8, padTop = 15, padBottom = 15;
-
   ctx.fillStyle = "#0b1420"; ctx.fillRect(0, 0, w, h);
-
   const allVals = candles.flatMap(c => [c.high, c.low]).concat([signal.stop_loss, signal.take_profit]);
   const min = Math.min(...allVals), max = Math.max(...allVals), range = (max-min) || 1;
   const toY = v => padTop + (h - padTop - padBottom) * (1 - (v - min) / range);
   const plotWidth = w - padLeft - padRight;
   const cw = plotWidth / candles.length;
-
-  // gridlines + price labels
   ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.fillStyle = "#6b7690"; ctx.font = "10px sans-serif";
   for (let i = 0; i <= 4; i++) {
     const y = padTop + ((h - padTop - padBottom) / 4) * i;
@@ -508,7 +503,6 @@ function drawSignalChart(canvasId, candles, signal) {
     const priceAtY = max - (range / 4) * i;
     ctx.fillText(priceAtY.toFixed(5), w - padRight + 4, y + 3);
   }
-
   candles.forEach((c,i) => {
     const x = padLeft + i*cw + cw/2;
     const color = c.close >= c.open ? "#3ecf8e" : "#e05c5c";
@@ -518,7 +512,6 @@ function drawSignalChart(canvasId, candles, signal) {
     const bodyTop = toY(Math.max(c.open,c.close)), bodyBot = toY(Math.min(c.open,c.close));
     ctx.fillRect(x - cw*0.35, bodyTop, cw*0.7, Math.max(1.5, bodyBot - bodyTop));
   });
-
   const drawLine = (val, color, label) => {
     const y = toY(val);
     ctx.strokeStyle = color; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
@@ -558,14 +551,63 @@ function startDashboardAutoRefresh() {
   dashboardRefreshInterval = setInterval(() => { if (document.getElementById("tab-dashboard").classList.contains("active")) loadDashboard(); }, 30000);
 }
 
-// ---------- SIGNALS ----------
+// ---------- QUOTES ----------
+async function loadQuotes() {
+  const el = document.getElementById("quotes-list");
+  el.innerHTML = ALL_PAIRS.map(p => `<div class="quote-row" id="quote-${p.replace('/','')}"><span class="pair-name">${p}</span><span class="price">loading...</span></div>`).join("");
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs: ALL_PAIRS }) });
+    const result = await res.json();
+    if (!result.ok) return;
+    ALL_PAIRS.forEach(p => {
+      const row = document.getElementById(`quote-${p.replace('/','')}`);
+      const price = result.prices[p];
+      if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
+    });
+  } catch (e) {}
+}
+
+// ---------- OPEN POSITIONS ----------
+async function loadPositions() {
+  const { data: activeSignals } = await sb.from("signals").select("*").eq("status","active");
+  const el = document.getElementById("positions-list");
+  if (!activeSignals || activeSignals.length === 0) { el.innerHTML = `<div class="empty-state">No open positions right now.</div>`; return; }
+  const pairs = [...new Set(activeSignals.map(s => s.pair))];
+  let prices = {};
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs }) });
+    const result = await res.json();
+    if (result.ok) prices = result.prices;
+  } catch (e) {}
+  el.innerHTML = activeSignals.map(s => {
+    const price = prices[s.pair];
+    const stopDistance = Math.abs(s.entry - s.stop_loss) || 0.0001;
+    const riskAmount = (currentProfile.account_balance * currentProfile.risk_percent) / 100;
+    const positionSize = riskAmount / stopDistance;
+    const cs = s.pair === "XAU/USD" ? 100 : 100000;
+    const lots = (positionSize / cs).toFixed(2);
+    let pnl = 0, pnlText = "loading...";
+    if (price) {
+      const priceDelta = s.direction === "long" ? price - s.entry : s.entry - price;
+      pnl = positionSize * priceDelta;
+      pnlText = `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`;
+    }
+    return `<div class="card position-row">
+      <div class="top-row"><div><strong>${s.pair}</strong> <span class="badge badge-${s.direction}">${s.direction.toUpperCase()}</span></div>
+      <div class="pnl" style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${pnlText}</div></div>
+      <div class="details">Entry ${Number(s.entry).toFixed(5)} · Current ${price ? price.toFixed(5) : '—'} · ${lots} lots</div></div>`;
+  }).join("");
+}
+
+// ---------- SIGNALS (collapsible) ----------
 async function loadSignals() {
   const { data: signals } = await sb.from("signals").select("*").order("created_at", { ascending: false }).limit(50);
   const { data: myResponses } = await sb.from("signal_responses").select("*").eq("user_id", currentUser.id);
   const responseMap = {}; (myResponses||[]).forEach(r => responseMap[r.signal_id] = r.action);
   const el = document.getElementById("signals-list");
   if (!signals || signals.length === 0) { el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`; return; }
-
   el.innerHTML = signals.map((s,idx) => {
     const myAction = responseMap[s.id];
     const showButtons = s.status === "active" && !myAction;
@@ -573,12 +615,9 @@ async function loadSignals() {
     return `
     <div class="card signal-card ${s.direction}" style="padding:0; overflow:hidden;">
       <div style="padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleSignalDetail(${idx})">
-        <div>
-          <strong style="font-size:15px;">${s.pair}</strong>
+        <div><strong style="font-size:15px;">${s.pair}</strong>
           <span class="badge badge-${s.direction}">${s.direction.toUpperCase()}</span>
-          <span class="badge badge-active">${s.timeframe}</span>
-          ${statusBadge}
-        </div>
+          <span class="badge badge-active">${s.timeframe}</span>${statusBadge}</div>
         <span id="chevron-${idx}" style="color:var(--text-muted); font-size:13px;">▾</span>
       </div>
       <div id="signal-detail-${idx}" style="display:none; padding:0 16px 16px 16px;">
@@ -601,10 +640,8 @@ async function loadSignals() {
       </div>
     </div>`;
   }).join("");
-
   window._signalsCache = signals;
 }
-
 function toggleSignalDetail(idx) {
   const detail = document.getElementById(`signal-detail-${idx}`);
   const chevron = document.getElementById(`chevron-${idx}`);
@@ -613,9 +650,7 @@ function toggleSignalDetail(idx) {
   chevron.textContent = isOpen ? "▾" : "▴";
   if (!isOpen) {
     const s = window._signalsCache?.[idx];
-    if (s && !s.chart_url && s.candles_snapshot) {
-      setTimeout(() => drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s), 10);
-    }
+    if (s && !s.chart_url && s.candles_snapshot) setTimeout(() => drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s), 10);
   }
 }
 async function respondToSignal(signalId, action) {
@@ -642,7 +677,7 @@ async function loadSimulation() {
     <td>$${l.running_balance.toLocaleString(undefined,{maximumFractionDigits:2})}</td></tr>`).join("");
 }
 
-// ---------- JOURNAL (with revenge-trade + streak warnings) ----------
+// ---------- JOURNAL ----------
 async function addJournalEntry() {
   const volume = parseFloat(document.getElementById("j-volume").value || 0);
   const { data: recent } = await sb.from("journal_entries").select("*").eq("user_id", currentUser.id).order("created_at", { ascending: false }).limit(5);
@@ -651,16 +686,10 @@ async function addJournalEntry() {
   if (recent && recent.length > 0) {
     const avgVolume = recent.reduce((a,r)=>a+(r.volume||0),0) / recent.length;
     const lastPnl = recent[0].pnl;
-    if (lastPnl != null && lastPnl < 0 && volume > avgVolume * 1.5) {
-      warnings.push("Revenge-trade check: your last logged trade was a loss, and this size is notably larger than your recent average. Worth a pause before confirming.");
-    }
-    if (recent.length >= 3 && recent.slice(0,3).every(r => (r.pnl||0) > 0) && volume > avgVolume * 1.3) {
-      warnings.push("Streak check: you're on a 3+ win streak and this size is larger than your average — a common spot where oversizing creeps in.");
-    }
+    if (lastPnl != null && lastPnl < 0 && volume > avgVolume * 1.5) warnings.push("Revenge-trade check: your last logged trade was a loss, and this size is notably larger than your recent average.");
+    if (recent.length >= 3 && recent.slice(0,3).every(r => (r.pnl||0) > 0) && volume > avgVolume * 1.3) warnings.push("Streak check: you're on a 3+ win streak and this size is larger than your average.");
   }
-  if (warnings.length > 0) { warnEl.innerHTML = warnings.map(w => `<div class="warning-box">${w}</div>`).join(""); }
-  else { warnEl.innerHTML = ""; }
-
+  warnEl.innerHTML = warnings.map(w => `<div class="warning-box">${w}</div>`).join("");
   const entry = {
     user_id: currentUser.id, trade_date: document.getElementById("j-date").value,
     instrument: document.getElementById("j-instrument").value, trade_type: document.getElementById("j-type").value,
@@ -797,6 +826,8 @@ async function loadAdminUsers() {
   body.innerHTML = result.users.map(u => `<tr><td>${u.email}</td><td>${u.role}</td><td>${new Date(u.expires_at).toLocaleDateString()}</td>
     <td>${u.risk_percent}%</td><td>${u.role !== 'admin' ? `<button class="btn-outline" onclick="adminRevoke('${u.id}')">Revoke now</button>` : ''}</td></tr>`).join("");
 }
+
+// ---------- PWA INSTALL ----------
 let deferredInstallPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -806,7 +837,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 async function installApp() {
   if (!deferredInstallPrompt) {
-    alert("Your browser doesn't support one-tap install here. On iPhone: tap Share → Add to Home Screen. On Android/Chrome: check the browser menu for 'Install app'.");
+    alert("Your browser doesn't support one-tap install here. On iPhone: open in Safari, tap Share → Add to Home Screen. On Android/Chrome: check the browser menu for 'Install app'.");
     return;
   }
   deferredInstallPrompt.prompt();
@@ -814,10 +845,9 @@ async function installApp() {
   deferredInstallPrompt = null;
   document.getElementById('install-nav-item').style.display = 'none';
 }
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js'); }
+
 checkExistingSession();
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js');
-}
 </script>
 </body>
 </html>
