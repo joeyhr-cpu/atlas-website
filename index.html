@@ -105,6 +105,28 @@
     .signal-detail-grid { grid-template-columns: repeat(2, 1fr); }
     .grid > .card { min-width: 100%; }
   }
+  .bottom-nav { display: none; }
+@media (max-width: 768px) {
+  .sidebar .nav-item, .sidebar-footer { display: none; }
+  .sidebar { padding: 10px 0; min-height: auto; }
+  #app-shell { padding-bottom: 60px; }
+  .bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
+    z-index: 100; padding: 6px 0;
+  }
+  .bottom-nav-item {
+    flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px;
+    cursor: pointer; padding: 6px 2px;
+  }
+  .bottom-nav-item.active { color: var(--gold); }
+  .bottom-nav-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+  .quote-row { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-bottom:1px solid var(--border); }
+  .quote-row .pair-name { font-weight:700; font-size:14px; }
+  .quote-row .price { font-size:15px; font-weight:700; }
+  .quote-row .change-up { color: var(--green); }
+  .quote-row .change-down { color: var(--red); }
+}
 </style>
 </head>
 <body>
@@ -121,6 +143,13 @@
 </div>
 <div id="app-shell">
   <div id="main-flex">
+    <div class="bottom-nav">
+  <div class="bottom-nav-item active" data-tab="quotes" onclick="switchTab('quotes')"><span class="icon">📈</span>Quotes</div>
+  <div class="bottom-nav-item" data-tab="signals" onclick="switchTab('signals')"><span class="icon">🔔</span>Signals</div>
+  <div class="bottom-nav-item" data-tab="charts" onclick="switchTab('charts')"><span class="icon">📊</span>Charts</div>
+  <div class="bottom-nav-item" data-tab="journal" onclick="switchTab('journal')"><span class="icon">📓</span>Journal</div>
+  <div class="bottom-nav-item" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="icon">☰</span>More</div>
+</div>
     <div class="sidebar" id="sidebar">
       <div class="brand">
         <div><h2>ATLAS</h2><span>TRADING INTELLIGENCE</span></div>
@@ -161,7 +190,11 @@
           <div class="card"><h3 style="margin-top:0;">Recent Activity</h3><div id="activity-feed"></div></div>
         </div>
       </div>
-
+<div class="tab-panel" id="tab-quotes">
+  <div class="card" style="padding:0;">
+    <div id="quotes-list"></div>
+  </div>
+</div>
       <div class="tab-panel" id="tab-signals"><div id="signals-list"></div></div>
 
       <div class="tab-panel" id="tab-simulation">
@@ -325,22 +358,44 @@ function enterApp() {
   document.getElementById("sim-balance").value = currentProfile.account_balance;
   document.getElementById("sim-risk").value = currentProfile.risk_percent;
   document.getElementById("j-date").value = new Date().toISOString().slice(0,10);
-  loadDashboard(); loadSignals(); loadSimulation(); loadJournal(); loadReports(); loadDream(); loadChatHistory(); loadRules();
+  loadDashboard(); loadSignals(); loadSimulation(); loadJournal(); loadReports(); loadDream(); loadChatHistory(); loadRules(); loadQuotes();
   startDashboardAutoRefresh();
   if (currentProfile.role === "admin") loadAdminUsers();
 }
 function switchTab(tab) {
   document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
-  document.querySelector(`.nav-item[data-tab="${tab}"]`).classList.add("active");
+  const navEl = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+  if (navEl) navEl.classList.add("active");
+  document.querySelectorAll(".bottom-nav-item").forEach(el => el.classList.remove("active"));
+  const bottomEl = document.querySelector(`.bottom-nav-item[data-tab="${tab}"]`);
+  if (bottomEl) bottomEl.classList.add("active");
   document.querySelectorAll(".tab-panel").forEach(el => el.classList.remove("active"));
   document.getElementById("tab-" + tab).classList.add("active");
-  const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin" };
+  const titles = { dashboard:"Dashboard", signals:"Signals", simulation:"My Simulation", journal:"Journal", coach:"Behavior Coach", rules:"My Rules", dream:"Dream / Vision", ask:"Ask Atlas", reports:"Weekly Reports", charts:"Charts", admin:"Admin", quotes:"Quotes" };
   document.getElementById("page-title").textContent = titles[tab];
   if (tab === "charts") loadTvChart();
   if (tab === "dashboard") loadDashboard();
   if (tab === "signals") loadSignals();
+  if (tab === "quotes") loadQuotes();
   document.getElementById("refresh-btn").style.display = tab === "dashboard" ? "inline-block" : "none";
   if (window.innerWidth <= 768) document.getElementById("sidebar").classList.add("collapsed");
+}
+
+async function loadQuotes() {
+  const pairs = ["XAU/USD", "EUR/USD", "GBP/USD", "USD/JPY", "USD/CHF", "AUD/USD", "USD/CAD", "NZD/USD"];
+  const el = document.getElementById("quotes-list");
+  el.innerHTML = pairs.map(p => `<div class="quote-row" id="quote-${p.replace('/','')}"><span class="pair-name">${p}</span><span class="price">loading...</span></div>`).join("");
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const res = await fetch(EDGE_FUNCTIONS_URL + "/live-price", { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + session.access_token }, body: JSON.stringify({ pairs }) });
+    const result = await res.json();
+    if (!result.ok) return;
+    pairs.forEach(p => {
+      const row = document.getElementById(`quote-${p.replace('/','')}`);
+      const price = result.prices[p];
+      if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
+    });
+  } catch (e) {}
 }
 
 // ---------- DASHBOARD ----------
