@@ -86,7 +86,11 @@
   .agent-tile .dot { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; margin-bottom:6px; }
   .agent-tile div.name { font-size:12px; font-weight:700; }
   .activity-item { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:12.5px; }
-  #equity-canvas, .signal-chart-canvas { width:100%; height:180px; }
+  #equity-canvas { width:100%; height:180px; }
+.signal-chart-canvas { width:100%; height:280px; background:#0b1420; border-radius:8px; }
+@media (max-width: 768px) {
+  .signal-chart-canvas { height:340px; }
+}
   .progress-bar-bg { background: rgba(128,128,128,0.15); border-radius: 10px; height: 10px; overflow:hidden; margin: 8px 0; }
   .progress-bar-fill { background: linear-gradient(90deg, var(--navy-2), var(--gold)); height: 100%; }
   #chat-log { max-height: 380px; overflow-y: auto; margin-bottom: 12px; }
@@ -98,7 +102,7 @@
     #main-flex { flex-direction: column; }
     .sidebar { width: 100%; min-height: auto; position: relative; padding: 12px 0; }
     .sidebar .brand { padding: 0 16px 12px 16px; }
-    #hamburger { display:inline-block; }
+    #hamburger { display:none; }
     .sidebar.collapsed .nav-item, .sidebar.collapsed .sidebar-footer { display: none; }
     .main { padding: 16px; }
     .agent-grid { grid-template-columns: repeat(2, 1fr); }
@@ -113,7 +117,7 @@
   .bottom-nav {
     display: flex; position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--sidebar); border-top: 1px solid rgba(255,255,255,0.1);
-    z-index: 100; padding: 6px 0;
+    z-index: 999999; padding: 6px 0;
   }
   .bottom-nav-item {
     flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px;
@@ -482,25 +486,50 @@ function drawSignalChart(canvasId, candles, signal) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !candles || !candles.length) return;
   const ctx = canvas.getContext("2d");
-  canvas.width = canvas.offsetWidth; canvas.height = 180;
-  const w = canvas.width, h = canvas.height;
+  const dpr = window.devicePixelRatio || 1;
+  const cssWidth = canvas.offsetWidth, cssHeight = canvas.offsetHeight || 280;
+  canvas.width = cssWidth * dpr; canvas.height = cssHeight * dpr;
+  ctx.scale(dpr, dpr);
+  const w = cssWidth, h = cssHeight, padRight = 55, padLeft = 8, padTop = 15, padBottom = 15;
+
+  ctx.fillStyle = "#0b1420"; ctx.fillRect(0, 0, w, h);
+
   const allVals = candles.flatMap(c => [c.high, c.low]).concat([signal.stop_loss, signal.take_profit]);
-  const min = Math.min(...allVals), max = Math.max(...allVals), range = (max-min)||1;
-  const toY = v => h - 15 - ((v-min)/range)*(h-30);
-  const cw = w / candles.length;
+  const min = Math.min(...allVals), max = Math.max(...allVals), range = (max-min) || 1;
+  const toY = v => padTop + (h - padTop - padBottom) * (1 - (v - min) / range);
+  const plotWidth = w - padLeft - padRight;
+  const cw = plotWidth / candles.length;
+
+  // gridlines + price labels
+  ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.fillStyle = "#6b7690"; ctx.font = "10px sans-serif";
+  for (let i = 0; i <= 4; i++) {
+    const y = padTop + ((h - padTop - padBottom) / 4) * i;
+    ctx.beginPath(); ctx.moveTo(padLeft, y); ctx.lineTo(w - padRight, y); ctx.stroke();
+    const priceAtY = max - (range / 4) * i;
+    ctx.fillText(priceAtY.toFixed(5), w - padRight + 4, y + 3);
+  }
+
   candles.forEach((c,i) => {
-    const x = i*cw + cw/2;
-    ctx.strokeStyle = c.close >= c.open ? "#147a4c" : "#a02828";
+    const x = padLeft + i*cw + cw/2;
+    const color = c.close >= c.open ? "#3ecf8e" : "#e05c5c";
+    ctx.strokeStyle = color; ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(x, toY(c.high)); ctx.lineTo(x, toY(c.low)); ctx.stroke();
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.fillRect(x-cw*0.3, toY(Math.max(c.open,c.close)), cw*0.6, Math.max(1, Math.abs(toY(c.open)-toY(c.close))));
+    ctx.fillStyle = color;
+    const bodyTop = toY(Math.max(c.open,c.close)), bodyBot = toY(Math.min(c.open,c.close));
+    ctx.fillRect(x - cw*0.35, bodyTop, cw*0.7, Math.max(1.5, bodyBot - bodyTop));
   });
+
   const drawLine = (val, color, label) => {
     const y = toY(val);
-    ctx.strokeStyle = color; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); ctx.setLineDash([]);
-    ctx.fillStyle = color; ctx.font = "10px sans-serif"; ctx.fillText(label, w-70, y-3);
+    ctx.strokeStyle = color; ctx.setLineDash([5,4]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(padLeft, y); ctx.lineTo(w - padRight, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = color; ctx.font = "bold 10px sans-serif";
+    ctx.fillRect(w - padRight, y - 8, padRight, 16);
+    ctx.fillStyle = "#0b1420"; ctx.fillText(label, w - padRight + 3, y + 3);
   };
-  drawLine(signal.entry, "#16345f", "Entry"); drawLine(signal.stop_loss, "#a02828", "SL"); drawLine(signal.take_profit, "#147a4c", "TP");
+  drawLine(signal.entry, "#c9a227", signal.entry.toFixed(2));
+  drawLine(signal.stop_loss, "#e05c5c", signal.stop_loss.toFixed(2));
+  drawLine(signal.take_profit, "#3ecf8e", signal.take_profit.toFixed(2));
 }
 
 async function calculateFloatingPnl(activeSignals) {
@@ -536,35 +565,58 @@ async function loadSignals() {
   const responseMap = {}; (myResponses||[]).forEach(r => responseMap[r.signal_id] = r.action);
   const el = document.getElementById("signals-list");
   if (!signals || signals.length === 0) { el.innerHTML = `<div class="empty-state">No signals yet. ATLAS scans the market continuously — check back shortly.</div>`; return; }
+
   el.innerHTML = signals.map((s,idx) => {
     const myAction = responseMap[s.id];
     const showButtons = s.status === "active" && !myAction;
+    const statusBadge = s.status !== 'active' ? `<span class="badge badge-${s.status === 'hit_tp' ? 'win' : s.status === 'hit_sl' ? 'loss' : 'invalidated'}">${s.status.replace('_',' ')}</span>` : '';
     return `
-    <div class="card signal-card ${s.direction}">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-        <div><strong style="font-size:16px;">${s.pair}</strong>
+    <div class="card signal-card ${s.direction}" style="padding:0; overflow:hidden;">
+      <div style="padding:14px 16px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;" onclick="toggleSignalDetail(${idx})">
+        <div>
+          <strong style="font-size:15px;">${s.pair}</strong>
           <span class="badge badge-${s.direction}">${s.direction.toUpperCase()}</span>
           <span class="badge badge-active">${s.timeframe}</span>
-          ${s.confidence != null ? `<span class="badge badge-active">${s.confidence}% confidence</span>` : ''}
-          ${s.status !== 'active' ? `<span class="badge badge-${s.status === 'hit_tp' ? 'win' : s.status === 'hit_sl' ? 'loss' : 'invalidated'}">${s.status.replace('_',' ')}</span>` : ''}
-          ${myAction ? `<span class="badge badge-invalidated">you: ${myAction}</span>` : ''}
+          ${statusBadge}
         </div>
-        <span style="font-size:11.5px; color:var(--text-muted);">${new Date(s.created_at).toLocaleString()}</span>
+        <span id="chevron-${idx}" style="color:var(--text-muted); font-size:13px;">▾</span>
       </div>
-      <div class="signal-detail-grid">
-        <div><label>Entry</label><span>${Number(s.entry).toFixed(5)}</span></div>
-        <div><label>Stop loss</label><span>${Number(s.stop_loss).toFixed(5)}</span></div>
-        <div><label>Take profit</label><span>${Number(s.take_profit).toFixed(5)}</span></div>
-        <div><label>Pattern</label><span>${s.pattern_type}</span></div>
-        <div><label>Suggested lot size</label><span>${(() => { const cs = s.pair === "XAU/USD" ? 100 : 100000; const ru = (currentProfile.account_balance * currentProfile.risk_percent / 100) / Math.abs(s.entry - s.stop_loss); return (ru/cs).toFixed(2); })()} lots</span></div>
+      <div id="signal-detail-${idx}" style="display:none; padding:0 16px 16px 16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          ${s.confidence != null ? `<span class="badge badge-active">${s.confidence}% confidence</span>` : '<span></span>'}
+          <span style="font-size:11.5px; color:var(--text-muted);">${new Date(s.created_at).toLocaleString()}</span>
+        </div>
+        <div class="signal-detail-grid">
+          <div><label>Entry</label><span>${Number(s.entry).toFixed(5)}</span></div>
+          <div><label>Stop loss</label><span>${Number(s.stop_loss).toFixed(5)}</span></div>
+          <div><label>Take profit</label><span>${Number(s.take_profit).toFixed(5)}</span></div>
+          <div><label>Pattern</label><span>${s.pattern_type}</span></div>
+          <div><label>Suggested lot size</label><span>${(() => { const cs = s.pair === "XAU/USD" ? 100 : 100000; const ru = (currentProfile.account_balance * currentProfile.risk_percent / 100) / Math.abs(s.entry - s.stop_loss); return (ru/cs).toFixed(2); })()} lots</span></div>
+        </div>
+        <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
+        ${myAction ? `<p style="margin:6px 0 0 0; font-size:12px;"><span class="badge badge-invalidated">you: ${myAction}</span></p>` : ''}
+        ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
+        ${showButtons ? `<div style="margin-top:10px;"><button class="btn-green" onclick="event.stopPropagation(); respondToSignal('${s.id}','approve')">✓ Approve</button> <button class="btn-red" onclick="event.stopPropagation(); respondToSignal('${s.id}','skip')">Skip</button></div>` : ''}
+        ${s.chart_url ? `<img src="${s.chart_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : `<canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>`}
       </div>
-      <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
-      ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
-      ${showButtons ? `<div style="margin-top:10px;"><button class="btn-green" onclick="respondToSignal('${s.id}','approve')">✓ Approve</button> <button class="btn-red" onclick="respondToSignal('${s.id}','skip')">Skip</button></div>` : ''}
-      ${s.chart_url ? `<img src="${s.chart_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : `<canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>`}
     </div>`;
   }).join("");
-  signals.forEach((s,idx) => { if (!s.chart_url && s.candles_snapshot) drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s); });
+
+  window._signalsCache = signals;
+}
+
+function toggleSignalDetail(idx) {
+  const detail = document.getElementById(`signal-detail-${idx}`);
+  const chevron = document.getElementById(`chevron-${idx}`);
+  const isOpen = detail.style.display === "block";
+  detail.style.display = isOpen ? "none" : "block";
+  chevron.textContent = isOpen ? "▾" : "▴";
+  if (!isOpen) {
+    const s = window._signalsCache?.[idx];
+    if (s && !s.chart_url && s.candles_snapshot) {
+      setTimeout(() => drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s), 10);
+    }
+  }
 }
 async function respondToSignal(signalId, action) {
   await sb.from("signal_responses").upsert({ user_id: currentUser.id, signal_id: signalId, action }, { onConflict: "user_id,signal_id" });
