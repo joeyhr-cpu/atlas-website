@@ -17,7 +17,7 @@
 #fullchart-overlay .fc-header { display:flex; justify-content:space-between; align-items:center; padding:14px 16px; color:#fff; }
 #fullchart-overlay .fc-close { background: rgba(255,255,255,0.1); color:#fff; padding:8px 14px; border-radius:8px; }
 #fullchart-canvas { flex: 1; width: 100%; }
-body.chart-open { overflow: hidden; }
+body.chart-open { position: fixed; width: 100%; overflow: hidden; }
   :root {
     --navy: #0b1f3a; --navy-2: #16345f; --gold: #c9a227;
     --bg: #f4f7fc; --card: #ffffff; --border: #e3e7ee;
@@ -124,8 +124,7 @@ body.chart-open { overflow: hidden; }
   @media (max-width: 768px) {
     #main-flex { flex-direction: column; }
     #hamburger { display:none; }
-    .sidebar .nav-item, .sidebar-footer { display: none; }
-    .sidebar { padding: 10px 0; min-height: auto; }
+    .sidebar { display: none !important; }
     #app-shell { padding-bottom: 60px; }
    .bottom-nav {
   display: flex; position: fixed; bottom: 0; left: 0; right: 0;
@@ -133,9 +132,9 @@ body.chart-open { overflow: hidden; }
   z-index: 999999; padding: 6px 60px 6px 0;
 }
     }
-    .bottom-nav-item { flex: 1; text-align: center; color: var(--sidebar-text); font-size: 10px; cursor: pointer; padding: 6px 2px; }
-    .bottom-nav-item.active { color: var(--gold); }
-    .bottom-nav-item .icon { font-size: 18px; display: block; margin-bottom: 2px; }
+    .bottom-nav-item { flex: 1; text-align: center; color: var(--sidebar-text); font-size: 9px; cursor: pointer; padding: 6px 1px; min-width: 0; }
+.bottom-nav-item.active { color: var(--gold); }
+.bottom-nav-item .icon { font-size: 20px; display: block; margin-bottom: 2px; }
     .main { padding: 16px; }
     .agent-grid { grid-template-columns: repeat(2, 1fr); }
     .signal-detail-grid { grid-template-columns: repeat(2, 1fr); }
@@ -172,8 +171,23 @@ body.chart-open { overflow: hidden; }
       <div class="bottom-nav-item" data-tab="positions" onclick="switchTab('positions')"><span class="icon">💼</span>Trade</div>
       <div class="bottom-nav-item" data-tab="signals" onclick="switchTab('signals')"><span class="icon">🔔</span>Signals</div>
       <div class="bottom-nav-item" data-tab="charts" onclick="switchTab('charts')"><span class="icon">📊</span>Charts</div>
-      <div class="bottom-nav-item" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="icon">☰</span>More</div>
+      <div class="bottom-nav-item" onclick="openMoreSheet()"><span class="icon">☰</span>More</div>
     </div>
+    <div id="more-sheet" style="display:none; position:fixed; inset:0; z-index:999998; background:rgba(0,0,0,0.5);" onclick="if(event.target===this) closeMoreSheet()">
+  <div style="position:absolute; bottom:0; left:0; right:0; background:var(--sidebar); border-radius:16px 16px 0 0; padding:16px 0 70px 0; max-height:70vh; overflow-y:auto;">
+    <div class="nav-item" onclick="switchTab('dashboard'); closeMoreSheet();">Dashboard</div>
+    <div class="nav-item" onclick="switchTab('simulation'); closeMoreSheet();">My Simulation</div>
+    <div class="nav-item" onclick="switchTab('journal'); closeMoreSheet();">Journal</div>
+    <div class="nav-item" onclick="switchTab('coach'); closeMoreSheet();">Behavior Coach</div>
+    <div class="nav-item" onclick="switchTab('rules'); closeMoreSheet();">My Rules</div>
+    <div class="nav-item" onclick="switchTab('dream'); closeMoreSheet();">Dream / Vision</div>
+    <div class="nav-item" onclick="switchTab('ask'); closeMoreSheet();">Ask Atlas</div>
+    <div class="nav-item" onclick="switchTab('reports'); closeMoreSheet();">Weekly Reports</div>
+    <div class="nav-item" id="more-admin-item" style="display:none;" onclick="switchTab('admin'); closeMoreSheet();">Admin</div>
+    <div class="nav-item" onclick="installApp(); closeMoreSheet();">📲 Install App</div>
+    <div class="nav-item" style="color:#f0a0a0;" onclick="handleLogout()">Sign out</div>
+  </div>
+</div>
     <div class="sidebar" id="sidebar">
       <div class="brand">
         <div><h2>ATLAS</h2><span>TRADING INTELLIGENCE</span></div>
@@ -354,6 +368,11 @@ window.addEventListener('load', () => {
   setTimeout(() => { document.getElementById('splash-screen').classList.add('hidden'); }, 600);
 });
 
+  function openMoreSheet() {
+  document.getElementById("more-sheet").style.display = "block";
+  if (currentProfile?.role === "admin") document.getElementById("more-admin-item").style.display = "block";
+}
+function closeMoreSheet() { document.getElementById("more-sheet").style.display = "none"; }
 function toggleTheme() {
   const isDark = document.documentElement.getAttribute("data-theme") === "dark";
   document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
@@ -596,7 +615,9 @@ async function loadQuotes() {
       const price = result.prices[p];
       if (row && price) row.querySelector(".price").textContent = price.toFixed(p === "USD/JPY" ? 3 : 5);
     });
-  } catch (e) {}
+  } catch (e) {
+  console.error("Quotes fetch failed:", e);
+  ALL_PAIRS.forEach(p => { const row = document.getElementById(`quote-${p.replace('/','')}`); if (row) row.querySelector(".price").textContent = "unavailable"; });
 }
 
 // ---------- OPEN POSITIONS ----------
