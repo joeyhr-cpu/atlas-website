@@ -438,7 +438,7 @@ async function loadSignals() {
 </div>
       <p style="margin:8px 0 0 0; color:var(--text-muted); font-size:13px;">${s.thesis}</p>
       ${s.invalidation_reason ? `<p style="margin:6px 0 0 0; font-size:12px; color:var(--red);">Invalidated: ${s.invalidation_reason}</p>` : ''}
-      <canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>
+      ${s.chart_url ? `<img src="${s.chart_url}" style="width:100%; border-radius:8px; margin-top:10px;">` : `<canvas class="signal-chart-canvas" id="sig-chart-${idx}" style="margin-top:10px;"></canvas>`}
     </div>`).join("");
   signals.forEach((s,idx) => { if (s.candles_snapshot) drawSignalChart(`sig-chart-${idx}`, s.candles_snapshot, s); });
 }
